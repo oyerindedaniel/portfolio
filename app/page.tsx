@@ -1,102 +1,145 @@
-import Image from "next/image";
+"use client";
+
+import { Framed } from "@/components/framed";
+import { HandwritingText } from "@/components/handwriting-text";
+import { NotebookLines } from "@/components/notebook-lines";
+import { HandwritingProvider } from "@/context/handwriting-context";
+import { Button } from "@/components/ui/button";
+import { CopyIcon } from "@/icons/copy";
+import { SignatureName } from "@/components/signature-name";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="relative max-w-[50.5rem] w-full mx-auto min-h-dvh h-full font-shadows-into-light">
+      <header className="py-2 flex justify-end">
+        <Button variant="primary" size="sm">
+          Signature
+        </Button>
+      </header>
+      <main className="mt-[17rem]">
+        <HandwritingProvider>
+          <div className="flex flex-col gap-[0.9375rem]">
+            <div className="relative h-[2.8125rem]">
+              <Framed.Svg className="absolute -top-[8.9375rem]">
+                <Framed.Image
+                  src="/jujustu.jpg"
+                  alt="Profile"
+                  className="w-[191px] h-[191px] object-cover"
+                  unoptimized
+                  priority
+                />
+              </Framed.Svg>
+              <div className="relative w-fit ml-auto">
+                <NotebookLines width="601" height="45" viewBox="0 0 601 45" />
+                <div className="absolute inset-0 flex items-end p-4">
+                  <HandwritingText text="Oyerinde Daniel" />
+                </div>
+              </div>
+            </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+            <div className="relative w-full">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end p-4">
+                <HandwritingText text="23-years-old creative male." />
+              </div>
+            </div>
+
+            <div className="relative w-full">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end p-4">
+                <HandwritingText text="Typescript-based software engineer." />
+              </div>
+            </div>
+
+            <div className="relative w-full">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end p-4">
+                <HandwritingText text="I love engineering systems -" />
+              </div>
+            </div>
+
+            <div className="relative w-full">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end p-4">
+                <HandwritingText text="building things that work beautifully and scale effortlessly." />
+              </div>
+            </div>
+
+            <div className="relative w-full">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end p-4">
+                <HandwritingText text="" />
+              </div>
+            </div>
+
+            <div className="relative w-full">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end p-4">
+                <HandwritingText as="h2" text="" />
+              </div>
+            </div>
+
+            <div className="relative w-full">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end p-4">
+                <HandwritingText text="" />
+              </div>
+            </div>
+
+            <div className="relative w-full">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end w-fit ml-auto pl-4 py-4 pr-[3.4375rem]">
+                <HandwritingText
+                  className=""
+                  text="Contact me: oyerinde.daniel@yahoo.com "
+                />
+                <Button size="icon">
+                  <CopyIcon />
+                </Button>
+              </div>
+            </div>
+
+            <div className="relative">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end pl-4 py-4 pr-[3.6875rem] w-fit ml-auto">
+                <HandwritingText
+                  as="a"
+                  href="https://github.com/oyerindedaniel"
+                  target="_blank"
+                  text="github  "
+                />
+                <HandwritingText
+                  as="a"
+                  href="https://x.com/fybnow"
+                  target="_blank"
+                  text="twitter  "
+                />
+                <HandwritingText
+                  as="a"
+                  href="https://www.linkedin.com/in/daniel-oyerinde-300b53197"
+                  target="_blank"
+                  text="linkendin"
+                />
+                {/* <HandwritingText
+                  as="a"
+                  href="https://x.com/fybnow"
+                  target="_blank"
+                  text="resume"
+                /> */}
+              </div>
+            </div>
+
+            <div className="relative w-full">
+              <NotebookLines />
+              <div className="absolute inset-0 flex items-end p-4">
+                <HandwritingText text="" />
+              </div>
+            </div>
+          </div>
+        </HandwritingProvider>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      <footer className="p-8">
+        <SignatureName />
       </footer>
     </div>
   );
