@@ -869,17 +869,15 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
           updateState("completed");
           if (onComplete) onComplete();
 
-          // Reset to start position
-          progressRef.current = 0;
+          // Keep progress at 1 so signature stays visible
+          progressRef.current = 1;
           startTimeRef.current = null;
           pausedAtRef.current = null;
 
-          // Reset all paths to initial state
+          // Keep all paths at completion state (progress = 1)
           for (const key in pathsRef.current) {
             const record = pathsRef.current[key];
-            record.progress = 0;
-            record.hasStarted = false;
-            record.hasCompleted = false;
+            record.progress = 1;
             updatePathVisual(record);
           }
         }
