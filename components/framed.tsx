@@ -43,7 +43,7 @@ type ImageProps = {
 } & Omit<NextImageProps, "width" | "height" | "alt">;
 
 const Image = React.forwardRef<HTMLImageElement, ImageProps>(
-  ({ width = 188, height = 188, className, alt = "", ...props }, ref) => {
+  ({ width = 191, height = 191, className, alt = "", ...props }, ref) => {
     return (
       <foreignObject width={width} height={height}>
         <NextImage
