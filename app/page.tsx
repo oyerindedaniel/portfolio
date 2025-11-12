@@ -61,7 +61,7 @@ export default function Home() {
             <div className="relative w-full">
               <NotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
-                <HandwritingText text="building things that work beautifully and scale effortlessly." />
+                <HandwritingText text="building things that work seamlessly and scale effortlessly." />
               </div>
             </div>
 
