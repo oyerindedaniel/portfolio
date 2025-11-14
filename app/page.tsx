@@ -7,6 +7,8 @@ import { HandwritingProvider } from "@/context/handwriting-context";
 import { Button } from "@/components/ui/button";
 import { CopyIcon } from "@/icons/copy";
 import { SignatureName } from "@/components/signature-name";
+import jujutsu from "../public/jujustu.jpg";
+import { AnimatedNotebookLines } from "@/components/animated-notebook-lines";
 
 export default function Home() {
   return (
@@ -20,17 +22,22 @@ export default function Home() {
         <HandwritingProvider>
           <div className="flex flex-col gap-[0.9375rem]">
             <div className="relative h-[2.8125rem]">
-              <Framed.Svg className="absolute -top-[8.9375rem]">
+              <Framed.Svg className="absolute -top-[8.8375rem] group/framed">
                 <Framed.Image
-                  src="/jujustu.jpg"
+                  src={jujutsu}
                   alt="Profile"
-                  className="w-[191px] h-[191px] object-cover"
+                  className="w-[188px] h-[187px] object-cover"
                   unoptimized
                   priority
+                  placeholder="blur"
                 />
               </Framed.Svg>
               <div className="relative w-fit ml-auto">
-                <NotebookLines width="601" height="45" viewBox="0 0 601 45" />
+                <AnimatedNotebookLines
+                  width="601"
+                  height="45"
+                  viewBox="0 0 601 45"
+                />
                 <div className="absolute inset-0 flex items-end p-4">
                   <HandwritingText text="Oyerinde Daniel" />
                 </div>
@@ -38,61 +45,58 @@ export default function Home() {
             </div>
 
             <div className="relative w-full">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
                 <HandwritingText text="23-years-old creative male." />
               </div>
             </div>
 
             <div className="relative w-full">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
                 <HandwritingText text="Typescript-based software engineer." />
               </div>
             </div>
 
             <div className="relative w-full">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
                 <HandwritingText text="I love engineering systems -" />
               </div>
             </div>
 
             <div className="relative w-full">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
                 <HandwritingText text="building things that work seamlessly and scale effortlessly." />
               </div>
             </div>
 
             <div className="relative w-full">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
                 <HandwritingText text="" />
               </div>
             </div>
 
             <div className="relative w-full">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
                 <HandwritingText text="" />
               </div>
             </div>
 
             <div className="relative w-full">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
                 <HandwritingText text="" />
               </div>
             </div>
 
             <div className="relative w-full">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end w-fit ml-auto pl-4 py-4 pr-[3.4375rem]">
-                <HandwritingText
-                  className=""
-                  text="Contact me: oyerinde.daniel@yahoo.com "
-                />
+                <HandwritingText text="Contact me: oyerinde.daniel@yahoo.com " />
                 <Button size="icon">
                   <CopyIcon />
                 </Button>
@@ -100,7 +104,7 @@ export default function Home() {
             </div>
 
             <div className="relative">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end pl-4 py-4 pr-[3.6875rem] w-fit ml-auto">
                 <HandwritingText
                   as="a"
@@ -130,7 +134,7 @@ export default function Home() {
             </div>
 
             <div className="relative w-full">
-              <NotebookLines />
+              <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
                 <HandwritingText text="" />
               </div>

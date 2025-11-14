@@ -16,110 +16,7 @@ import { useLatestValue } from "@/hooks/use-latest-value";
 import { useStableHandler } from "@/hooks/use-stable-handler";
 import { useIsoLayoutEffect } from "@/hooks/use-Isomorphic-layout-effect";
 import { useClientOnly } from "@/hooks/use-client-only";
-
-/* ===========================
-       GLOBAL RAF SINGLETON
-       =========================== */
-
-/**
- * Global RAF manager for efficient animation coordination.
- * Prevents multiple RAF loops and provides centralized cleanup.
- */
-class RAFManager {
-  private callbacks: Set<(time: number) => void> = new Set();
-  private rafId: number | null = null;
-  private isRunning = false;
-
-  /**
-   * Subscribe a callback to the animation loop
-   */
-  subscribe(callback: (time: number) => void): () => void {
-    this.callbacks.add(callback);
-
-    if (!this.isRunning) {
-      this.start();
-    }
-
-    // Return unsubscribe function
-    return () => {
-      this.callbacks.delete(callback);
-      if (this.callbacks.size === 0) {
-        this.stop();
-      }
-    };
-  }
-
-  /**
-   * Start the animation loop
-   */
-  private start(): void {
-    if (this.isRunning) return;
-    this.isRunning = true;
-    this.tick();
-  }
-
-  /**
-   * Stop the animation loop
-   */
-  private stop(): void {
-    if (this.rafId !== null) {
-      cancelAnimationFrame(this.rafId);
-      this.rafId = null;
-    }
-    this.isRunning = false;
-  }
-
-  /**
-   * Animation tick - calls all subscribed callbacks
-   */
-  private tick = (time?: number): void => {
-    const currentTime = time || performance.now();
-
-    // Call all subscribed callbacks
-    this.callbacks.forEach((callback) => {
-      try {
-        callback(currentTime);
-      } catch (err) {
-        console.error("RAF callback error:", err);
-      }
-    });
-
-    // Continue loop if there are active subscribers
-    if (this.callbacks.size > 0) {
-      this.rafId = requestAnimationFrame(this.tick);
-    } else {
-      this.isRunning = false;
-    }
-  };
-
-  /**
-   * Force stop (cleanup on unmount)
-   */
-  destroy(): void {
-    this.callbacks.clear();
-    this.stop();
-  }
-}
-
-// Global singleton instance
-const globalRAF = new RAFManager();
-
-/**
- * Hook to subscribe to global RAF loop
- */
-function useRAF(callback: (time: number) => void, enabled = true): void {
-  const callbackRef = useLatestValue(callback);
-
-  useEffect(() => {
-    if (!enabled) return;
-
-    const unsubscribe = globalRAF.subscribe((time) => {
-      callbackRef.current(time);
-    });
-
-    return unsubscribe;
-  }, [enabled, callbackRef]);
-}
+import { useRAF } from "@/hooks/use-raf";
 
 // ============================================================================
 // VIEWPORT AUTOPLAY
@@ -250,13 +147,13 @@ export function useViewportAutoPlay(
 
             if (delay > 0) {
               timeoutRef.current = window.setTimeout(() => {
-                if (!controller.isCompleted || onEnter === "restart") {
+                if (!controller.isCompleted || onEnter === "restart" || !once) {
                   controller.play();
                   hasStartedRef.current = true;
                 }
               }, delay);
             } else {
-              if (!controller.isCompleted || onEnter === "restart") {
+              if (!controller.isCompleted || onEnter === "restart" || !once) {
                 controller.play();
                 hasStartedRef.current = true;
               }
@@ -312,7 +209,6 @@ export function useViewportAutoPlay(
     once,
     delay,
     controller,
-    elementRef,
   ]);
 }
 

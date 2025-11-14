@@ -66,6 +66,19 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-shadows-into-light: var(--font-shadows-into-light);
+
+  @keyframes sweep {
+    from {
+      x1: -1;
+      x2: 0;
+    }
+    to {
+      x1: 1;
+      x2: 2;
+    }
+  }
+
+  --animate-sweep: sweep 2s linear infinite;
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -77,5 +90,5 @@
 
 body {
   background: var(--background);
-  color: var(--foreground);
+  color: var(--foreground-muted);
 }

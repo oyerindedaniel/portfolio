@@ -1,39 +1,45 @@
 import * as React from "react";
+import { cn } from "@/lib/cn";
 
-export function CopyIcon(props: React.SVGProps<SVGSVGElement>) {
+export function CopyIcon({ ...props }: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 15 15"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <path
-        d="M0.5 4L3.15234 0.5H11.7656L14.5 4V11L11.7656 14.5H3.17969L0.5 11V4Z"
-        fill="white"
-      />
-      <path
-        d="M0.5 4L3.15234 0.5H11.7656L14.5 4V11L11.7656 14.5H3.17969L0.5 11V4Z"
-        stroke="#2E2E2E"
-      />
-      <g clipPath="url(#clip0_31_377)">
+    <div className="group inline-flex">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 15 15"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        {...props}
+      >
         <path
-          d="M9.0625 2.9375H4.25C3.76875 2.9375 3.375 3.33125 3.375 3.8125V9.5C3.375 9.74062 3.57187 9.9375 3.8125 9.9375C4.05313 9.9375 4.25 9.74062 4.25 9.5V4.25C4.25 4.00937 4.44687 3.8125 4.6875 3.8125H9.0625C9.30312 3.8125 9.5 3.61563 9.5 3.375C9.5 3.13437 9.30312 2.9375 9.0625 2.9375ZM9.32063 4.94563L11.4338 7.05875C11.5956 7.22062 11.6875 7.44375 11.6875 7.67562V11.6875C11.6875 12.1687 11.2937 12.5625 10.8125 12.5625H5.99563C5.51437 12.5625 5.125 12.1687 5.125 11.6875L5.12938 5.5625C5.12938 5.08125 5.51875 4.6875 6 4.6875H8.69938C8.93125 4.6875 9.15438 4.77938 9.32063 4.94563ZM9.0625 7.75H11.0312L8.625 5.34375V7.3125C8.625 7.55312 8.82188 7.75 9.0625 7.75Z"
-          fill="currentColor"
+          d="M0.5 4L3.15234 0.5H11.7656L14.5 4V11L11.7656 14.5H3.17969L0.5 11V4Z"
+          fill="white"
         />
-      </g>
-      <defs>
-        <clipPath id="clip0_31_377">
-          <rect
-            width="10.5"
-            height="10.5"
-            fill="white"
-            transform="translate(2.5 2.5)"
+        <path
+          d="M0.5 4L3.15234 0.5H11.7656L14.5 4V11L11.7656 14.5H3.17969L0.5 11V4Z"
+          className="stroke-foreground-muted group-hover:stroke-black transition-colors duration-200"
+        />
+        <g clipPath="url(#clip0_31_377)">
+          <path
+            d="M9.0625 2.9375H4.25C3.76875 2.9375 3.375 3.33125 3.375 3.8125V9.5C3.375 9.74062 3.57187 9.9375 3.8125 9.9375C4.05313 9.9375 4.25 9.74062 4.25 9.5V4.25C4.25 4.00937 4.44687 3.8125 4.6875 3.8125H9.0625C9.30312 3.8125 9.5 3.61563 9.5 3.375C9.5 3.13437 9.30312 2.9375 9.0625 2.9375ZM9.32063 4.94563L11.4338 7.05875C11.5956 7.22062 11.6875 7.44375 11.6875 7.67562V11.6875C11.6875 12.1687 11.2937 12.5625 10.8125 12.5625H5.99563C5.51437 12.5625 5.125 12.1687 5.125 11.6875L5.12938 5.5625C5.12938 5.08125 5.51875 4.6875 6 4.6875H8.69938C8.93125 4.6875 9.15438 4.77938 9.32063 4.94563ZM9.0625 7.75H11.0312L8.625 5.34375V7.3125C8.625 7.55312 8.82188 7.75 9.0625 7.75Z"
+            className={cn(
+              "fill-current group-hover:fill-black transition-all duration-200 ease-in-out",
+              "group-hover:scale-105 group-active:scale-95 origin-center"
+            )}
           />
-        </clipPath>
-      </defs>
-    </svg>
+        </g>
+        <defs>
+          <clipPath id="clip0_31_377">
+            <rect
+              width="10.5"
+              height="10.5"
+              fill="white"
+              transform="translate(2.5 2.5)"
+            />
+          </clipPath>
+        </defs>
+      </svg>
+    </div>
   );
 }
