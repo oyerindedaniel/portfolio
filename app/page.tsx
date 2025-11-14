@@ -2,21 +2,22 @@
 
 import { Framed } from "@/components/framed";
 import { HandwritingText } from "@/components/handwriting-text";
-import { NotebookLines } from "@/components/notebook-lines";
 import { HandwritingProvider } from "@/context/handwriting-context";
 import { Button } from "@/components/ui/button";
 import { CopyIcon } from "@/icons/copy";
 import { SignatureName } from "@/components/signature-name";
 import jujutsu from "../public/jujustu.jpg";
 import { AnimatedNotebookLines } from "@/components/animated-notebook-lines";
+import { useCopy } from "@/hooks/use-copy";
+import { YourSignature } from "@/components/your-signature";
 
 export default function Home() {
+  const { copy, copied, pending } = useCopy();
+
   return (
     <div className="relative max-w-[50.5rem] w-full mx-auto min-h-dvh h-full font-shadows-into-light">
       <header className="py-2 flex justify-end">
-        <Button variant="primary" size="sm">
-          Signature
-        </Button>
+        <YourSignature />
       </header>
       <main className="mt-[17rem]">
         <HandwritingProvider>
@@ -47,7 +48,7 @@ export default function Home() {
             <div className="relative w-full">
               <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
-                <HandwritingText text="23-years-old creative male." />
+                <HandwritingText text="2*-years-old creative male." />
               </div>
             </div>
 
@@ -97,7 +98,12 @@ export default function Home() {
               <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end w-fit ml-auto pl-4 py-4 pr-[3.4375rem]">
                 <HandwritingText text="Contact me: oyerinde.daniel@yahoo.com " />
-                <Button size="icon">
+                <Button
+                  variant="none"
+                  onClick={() => copy("oyerinde.daniel@yahoo.com")}
+                  disabled={pending}
+                  size="icon"
+                >
                   <CopyIcon />
                 </Button>
               </div>
@@ -111,18 +117,21 @@ export default function Home() {
                   href="https://github.com/oyerindedaniel"
                   target="_blank"
                   text="github  "
+                  className="hover:text-black transition-transform duration-200 hover:scale-105 active:scale-95"
                 />
                 <HandwritingText
                   as="a"
                   href="https://x.com/fybnow"
                   target="_blank"
                   text="twitter  "
+                  className="hover:text-black transition-transform duration-200 hover:scale-105 active:scale-95"
                 />
                 <HandwritingText
                   as="a"
                   href="https://www.linkedin.com/in/daniel-oyerinde-300b53197"
                   target="_blank"
                   text="linkendin"
+                  className="hover:text-black transition-transform duration-200 hover:scale-105 active:scale-95"
                 />
                 {/* <HandwritingText
                   as="a"
