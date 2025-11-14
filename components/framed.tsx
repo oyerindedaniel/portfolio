@@ -64,7 +64,7 @@ const Svg = React.forwardRef<SVGSVGElement, SvgProps>(
         <g mask="url(#mask)">{children}</g>
         <path
           d="M152.492 1L187 48.3242V138.675L152.492 186H37.4912L1 138.659V48.3398L37.4912 1H152.492Z"
-          stroke="var(--foreground-muted)"
+          stroke="#e5e7eb"
           strokeWidth="2"
           fill="none"
         />
