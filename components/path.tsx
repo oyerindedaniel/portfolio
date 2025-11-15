@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-  useState,
-  useLayoutEffect,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   motion,
   AnimatePresence,
@@ -18,6 +12,8 @@ import { cn } from "@/lib/cn";
 import { Button } from "./ui/button";
 import { SignatureCanvas, SignaturePath, SignatureRoot } from "./signature";
 import SignaturePad from "signature_pad";
+import { ImageUploader } from "./image-uploader";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 const PAPER_WIDTH = 700;
 const PAPER_HEIGHT = 550;
@@ -50,6 +46,9 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
   const [signaturePath, setSignaturePath] = useState<string>("");
   const [showAnimation, setShowAnimation] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
+  const [uploadedImage, setUploadedImage] = useState<string>("");
+  const [pathLength, setPathLength] = useState(0);
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -80,6 +79,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     setSignaturePath("");
     setShowAnimation(false);
     setIsEmpty(true);
+    setPathLength(0);
   };
 
   const handleAnimate = () => {
@@ -99,13 +99,54 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
       return pathData;
     });
 
-    setSignaturePath(paths.join(" "));
+    const combinedPath = paths.join(" ");
+    setSignaturePath(combinedPath);
+
+    // Calculate path length
+    const tempPath = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
+    tempPath.setAttribute("d", combinedPath);
+    const length = tempPath.getTotalLength();
+    setPathLength(length);
+
     setShowAnimation(true);
   };
 
   const handleDrawAgain = () => {
     setShowAnimation(false);
     handleClear();
+  };
+
+  const handleDownload = () => {
+    if (!signaturePath) return;
+
+    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${PAD_WIDTH} ${PAD_HEIGHT}" width="${PAD_WIDTH}" height="${PAD_HEIGHT}">
+    <path d="${signaturePath}" stroke="oklch(0.5 0 0)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <animate attributeName="stroke-dasharray" from="0 ${pathLength}" to="${pathLength} 0" dur="2s" fill="freeze" />
+      <animate attributeName="stroke-dashoffset" from="${pathLength}" to="0" dur="2s" fill="freeze" />
+    </path>
+    ${
+      uploadedImage
+        ? `
+    <image href="${uploadedImage}" x="-20" y="-20" width="40" height="40">
+      <animateMotion dur="2s" fill="freeze">
+        <mpath href="#motionPath"/>
+      </animateMotion>
+    </image>
+    <path id="motionPath" d="${signaturePath}" fill="none" stroke="none"/>`
+        : ""
+    }
+  </svg>`;
+
+    const blob = new Blob([svgContent], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "path-animation.svg";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const getFocusable = useCallback((container: HTMLElement | null) => {
@@ -129,10 +170,13 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     focusables[0]?.focus();
   }, [getFocusable]);
 
-  const svgHeight = `${(100 / aspectRatio).toFixed(2)}dvw`;
-  const svgWidth = `100dvw`;
-  const svgMaxHeight = `90dvh`;
-  const svgMaxWidth = `${(90 * aspectRatio).toFixed(2)}dvh`;
+  // Responsive sizing with 90% width constraint
+  const svgHeight = isMobile ? "auto" : `${(100 / aspectRatio).toFixed(2)}dvw`;
+  const svgWidth = isMobile ? "90vw" : "min(90vw, 100dvw)";
+  const svgMaxHeight = isMobile
+    ? "90vh"
+    : `min(90vh, ${(90 * aspectRatio).toFixed(2)}vh)`;
+  const svgMaxWidth = isMobile ? "90vw" : `${(90 * aspectRatio).toFixed(2)}vh`;
 
   return (
     <>
@@ -140,7 +184,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
 
       <div
         ref={ref}
-        className="relative flex items-center justify-center w-screen h-screen"
+        className="relative flex items-center justify-center w-screen h-screen px-[5vw]"
       >
         <div
           className="relative"
@@ -201,7 +245,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
               fontSize="20"
               fontWeight="500"
             >
-              Draw your signature here
+              Draw your path
             </text>
           </svg>
 
@@ -214,10 +258,10 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
               showAnimation ? "hidden" : "block"
             )}
             style={{
-              top: `calc((${PAD_Y} / ${PAPER_HEIGHT}) * min(${svgHeight}, ${svgMaxHeight}))`,
-              left: `calc((${PAD_X} / ${PAPER_WIDTH}) * min(${svgWidth}, ${svgMaxWidth}))`,
-              width: `calc((${PAD_WIDTH} / ${PAPER_WIDTH}) * min(${svgWidth}, ${svgMaxWidth}))`,
-              height: `calc((${PAD_HEIGHT} / ${PAPER_HEIGHT}) * min(${svgHeight}, ${svgMaxHeight}))`,
+              top: `calc((${PAD_Y} / ${PAPER_HEIGHT}) * 100%)`,
+              left: `calc((${PAD_X} / ${PAPER_WIDTH}) * 100%)`,
+              width: `calc((${PAD_WIDTH} / ${PAPER_WIDTH}) * 100%)`,
+              height: `calc((${PAD_HEIGHT} / ${PAPER_HEIGHT}) * 100%)`,
             }}
           />
 
@@ -225,10 +269,10 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
             <div
               className="absolute"
               style={{
-                top: `calc((${PAD_Y} / ${PAPER_HEIGHT}) * min(${svgHeight}, ${svgMaxHeight}))`,
-                left: `calc((${PAD_X} / ${PAPER_WIDTH}) * min(${svgWidth}, ${svgMaxWidth}))`,
-                width: `calc((${PAD_WIDTH} / ${PAPER_WIDTH}) * min(${svgWidth}, ${svgMaxWidth}))`,
-                height: `calc((${PAD_HEIGHT} / ${PAPER_HEIGHT}) * min(${svgHeight}, ${svgMaxHeight}))`,
+                top: `calc((${PAD_Y} / ${PAPER_HEIGHT}) * 100%)`,
+                left: `calc((${PAD_X} / ${PAPER_WIDTH}) * 100%)`,
+                width: `calc((${PAD_WIDTH} / ${PAPER_WIDTH}) * 100%)`,
+                height: `calc((${PAD_HEIGHT} / ${PAPER_HEIGHT}) * 100%)`,
               }}
             >
               <SignatureRoot duration={2000} autoPlay loop={false}>
@@ -237,48 +281,86 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
                   preserveAspectRatio="xMidYMid meet"
                   className="w-full h-full"
                 >
+                  <defs>
+                    <path id="motionPath" d={signaturePath} />
+                  </defs>
                   <SignaturePath
                     d={signaturePath}
                     strokeWidth={2.5}
                     color="#1e293b"
                   />
+                  {uploadedImage && (
+                    <image
+                      href={uploadedImage}
+                      x="-20"
+                      y="-20"
+                      width="40"
+                      height="40"
+                    >
+                      <animateMotion dur="2s" fill="freeze">
+                        <mpath href="#motionPath" />
+                      </animateMotion>
+                    </image>
+                  )}
                 </SignatureCanvas>
               </SignatureRoot>
             </div>
           )}
 
           <div
-            className="absolute left-1/2 -translate-x-1/2 -translate-y-full flex gap-3"
+            className="absolute left-1/2 -translate-x-1/2 -translate-y-full flex flex-col gap-3 items-center"
             style={{
               top: `calc(((${
                 LINE_START_Y + 5 * LINE_SPACING
               }) / ${PAPER_HEIGHT}) * 100%)`,
             }}
           >
-            {!showAnimation ? (
-              <>
-                <Button
-                  onClick={handleClear}
-                  variant="outline"
-                  size="sm"
-                  disabled={isEmpty}
-                >
-                  Clear
-                </Button>
-                <Button
-                  onClick={handleAnimate}
-                  variant="solid"
-                  size="sm"
-                  disabled={isEmpty}
-                >
-                  Animate
-                </Button>
-              </>
-            ) : (
-              <Button onClick={handleDrawAgain} variant="solid" size="sm">
-                Draw Again
-              </Button>
-            )}
+            <ImageUploader
+              onImageUpload={setUploadedImage}
+              currentImage={uploadedImage}
+              className="w-64"
+            />
+          </div>
+
+          <div
+            className="absolute left-1/2 -translate-x-1/2 -translate-y-full flex flex-col gap-3 items-center"
+            style={{
+              top: `calc(((${
+                LINE_START_Y + 6 * LINE_SPACING
+              }) / ${PAPER_HEIGHT}) * 100%)`,
+            }}
+          >
+            <div className="flex gap-3">
+              {!showAnimation ? (
+                <>
+                  <Button
+                    onClick={handleClear}
+                    variant="outline"
+                    size="sm"
+                    disabled={isEmpty}
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    onClick={handleAnimate}
+                    variant="solid"
+                    size="sm"
+                    disabled={isEmpty}
+                  >
+                    Animate
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button onClick={handleDrawAgain} variant="outline" size="sm">
+                    Draw Again
+                  </Button>
+                  <Button onClick={handleDownload} variant="solid" size="sm">
+                    Download SVG
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           <Button
@@ -310,7 +392,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
   );
 };
 
-export function YourSignature() {
+export function Path() {
   const [isOpen, setIsOpen] = useState(false);
   const [isPaperExpanded, setIsPaperExpanded] = useState(false);
 
@@ -319,6 +401,7 @@ export function YourSignature() {
   const paperSlideControls = useAnimationControls();
   const paperExpandControls = useAnimationControls();
   const [showClickButton, setShowClickButton] = useState(false);
+  const isSmallScreen = useMediaQuery("(max-width: 640px)");
 
   useEffect(() => {
     if (isOpen) {
@@ -364,7 +447,7 @@ export function YourSignature() {
       });
 
       await paperSlideControls.start({
-        y: -80,
+        y: isSmallScreen ? -60 : -80,
         transition: {
           duration: 0.6,
           ease: cubicBezier(0.34, 1.56, 0.64, 1),

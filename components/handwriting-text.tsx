@@ -15,7 +15,7 @@ type HandwritingTextProps<T extends React.ElementType> =
       keyof BaseHandwritingTextProps | "as"
     >;
 
-type PolymorphicRef<T extends React.ElementType> =
+export type PolymorphicRef<T extends React.ElementType> =
   React.ComponentPropsWithRef<T>["ref"];
 
 type HandwritingTextComponent = <T extends React.ElementType = "p">(
@@ -72,6 +72,7 @@ const HandwritingTextInner = <T extends React.ElementType = "p">(
       style={{
         lineHeight: `${effectiveLineHeight}px`,
         margin: 0,
+        width: "fit-content",
       }}
       {...rest}
     >

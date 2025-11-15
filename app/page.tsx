@@ -9,21 +9,29 @@ import { SignatureName } from "@/components/signature-name";
 import jujutsu from "../public/jujustu.jpg";
 import { AnimatedNotebookLines } from "@/components/animated-notebook-lines";
 import { useCopy } from "@/hooks/use-copy";
-import { YourSignature } from "@/components/your-signature";
+import { Path } from "@/components/path";
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useClientOnly } from "@/hooks/use-client-only";
+import { cn } from "@/lib/cn";
+import { HandwritingLine } from "@/components/handwriting-line";
+import { NotebookLines } from "@/components/notebook-lines";
 
 export default function Home() {
   const { copy, copied, pending } = useCopy();
+  const isClient = useClientOnly();
+
+  const isMax808 = useMediaQuery("(max-width: 856px)"); // Collapse frame when viewport ≤ content + px-6 padding (808 + 24*2)
 
   return (
-    <div className="relative max-w-[50.5rem] w-full mx-auto min-h-dvh h-full font-shadows-into-light">
+    <div className="relative max-w-[808px] w-full mx-auto min-h-dvh h-full font-shadows-into-light">
       <header className="py-2 flex justify-end">
-        <YourSignature />
+        <Path />
       </header>
       <main className="mt-[17rem]">
         <HandwritingProvider>
           <div className="flex flex-col gap-[0.9375rem]">
-            <div className="relative h-[2.8125rem]">
-              <Framed.Svg className="absolute -top-[8.8375rem] group/framed">
+            <div className="relative">
+              <Framed.Svg className="absolute -top-[8.8375rem] group/framed max-[calc(808px+48px)]:-top-[12.5875rem] transition-[top] ease-in duration-300">
                 <Framed.Image
                   src={jujutsu}
                   alt="Profile"
@@ -33,45 +41,60 @@ export default function Home() {
                   placeholder="blur"
                 />
               </Framed.Svg>
-              <div className="relative w-fit ml-auto">
-                <AnimatedNotebookLines
-                  width="601"
-                  height="45"
-                  viewBox="0 0 601 45"
-                />
-                <div className="absolute inset-0 flex items-end p-4">
-                  <HandwritingText text="Oyerinde Daniel" />
+              <div
+                className={cn(
+                  "relative w-full ml-auto",
+                  isMax808 ? "max-w-[808px]" : "max-w-[601px]"
+                )}
+              >
+                {isClient ? (
+                  <>
+                    <AnimatedNotebookLines
+                      maxWidth={isMax808 ? 808 : 601}
+                      height={45}
+                    />
+                    <div className="absolute inset-0 flex items-end p-4">
+                      <HandwritingText text="Oyerinde Daniel" />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <NotebookLines width={isMax808 ? 808 : 601} height={45} />
+                    <div className="absolute inset-0 flex items-end p-4">
+                      <HandwritingText text="Oyerinde Daniel" />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {isClient ? (
+              <>
+                <HandwritingLine>2*-years-old creative male.</HandwritingLine>
+                <HandwritingLine>
+                  Typescript-based software engineer.
+                </HandwritingLine>
+                <HandwritingLine>I love engineering systems-</HandwritingLine>
+                <HandwritingLine>
+                  building things that work seamlessly and scale effortlessly.
+                </HandwritingLine>
+              </>
+            ) : (
+              <>
+                <div className="relative w-full">
+                  <NotebookLines />
                 </div>
-              </div>
-            </div>
-
-            <div className="relative w-full">
-              <AnimatedNotebookLines />
-              <div className="absolute inset-0 flex items-end p-4">
-                <HandwritingText text="2*-years-old creative male." />
-              </div>
-            </div>
-
-            <div className="relative w-full">
-              <AnimatedNotebookLines />
-              <div className="absolute inset-0 flex items-end p-4">
-                <HandwritingText text="Typescript-based software engineer." />
-              </div>
-            </div>
-
-            <div className="relative w-full">
-              <AnimatedNotebookLines />
-              <div className="absolute inset-0 flex items-end p-4">
-                <HandwritingText text="I love engineering systems -" />
-              </div>
-            </div>
-
-            <div className="relative w-full">
-              <AnimatedNotebookLines />
-              <div className="absolute inset-0 flex items-end p-4">
-                <HandwritingText text="building things that work seamlessly and scale effortlessly." />
-              </div>
-            </div>
+                <div className="relative w-full">
+                  <NotebookLines />
+                </div>
+                <div className="relative w-full">
+                  <NotebookLines />
+                </div>
+                <div className="relative w-full">
+                  <NotebookLines />
+                </div>
+              </>
+            )}
 
             <div className="relative w-full">
               <AnimatedNotebookLines />
@@ -94,53 +117,60 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative w-full">
-              <AnimatedNotebookLines />
-              <div className="absolute inset-0 flex items-end w-fit ml-auto pl-4 py-4 pr-[3.4375rem]">
-                <HandwritingText text="Contact me: oyerinde.daniel@yahoo.com " />
-                <Button
-                  variant="none"
-                  onClick={() => copy("oyerinde.daniel@yahoo.com")}
-                  disabled={pending}
-                  size="icon"
-                >
-                  <CopyIcon />
-                </Button>
-              </div>
-            </div>
+            {isClient ? (
+              <>
+                <div className="relative w-full">
+                  <AnimatedNotebookLines />
+                  <div className="absolute inset-0 flex items-end w-fit ml-auto pl-4 py-4 pr-[3.4375rem]">
+                    <HandwritingText text="Contact me: oyerinde.daniel@yahoo.com " />
+                    <Button
+                      variant="none"
+                      onClick={() => copy("oyerinde.daniel@yahoo.com")}
+                      disabled={pending}
+                      size="icon"
+                    >
+                      <CopyIcon />
+                    </Button>
+                  </div>
+                </div>
 
-            <div className="relative">
-              <AnimatedNotebookLines />
-              <div className="absolute inset-0 flex items-end pl-4 py-4 pr-[3.6875rem] w-fit ml-auto">
-                <HandwritingText
-                  as="a"
-                  href="https://github.com/oyerindedaniel"
-                  target="_blank"
-                  text="github  "
-                  className="hover:text-black transition-transform duration-200 hover:scale-105 active:scale-95"
-                />
-                <HandwritingText
-                  as="a"
-                  href="https://x.com/fybnow"
-                  target="_blank"
-                  text="twitter  "
-                  className="hover:text-black transition-transform duration-200 hover:scale-105 active:scale-95"
-                />
-                <HandwritingText
-                  as="a"
-                  href="https://www.linkedin.com/in/daniel-oyerinde-300b53197"
-                  target="_blank"
-                  text="linkendin"
-                  className="hover:text-black transition-transform duration-200 hover:scale-105 active:scale-95"
-                />
-                {/* <HandwritingText
-                  as="a"
-                  href="https://x.com/fybnow"
-                  target="_blank"
-                  text="resume"
-                /> */}
-              </div>
-            </div>
+                <div className="relative">
+                  <AnimatedNotebookLines />
+                  <div className="absolute inset-0 flex items-end pl-4 py-4 pr-[3.6875rem] w-fit ml-auto">
+                    <HandwritingText
+                      as="a"
+                      href="https://github.com/oyerindedaniel"
+                      target="_blank"
+                      text="github  "
+                      className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+                    />
+                    <HandwritingText
+                      as="a"
+                      href="https://x.com/fybnow"
+                      target="_blank"
+                      text="twitter  "
+                      className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+                    />
+                    <HandwritingText
+                      as="a"
+                      href="https://www.linkedin.com/in/daniel-oyerinde-300b53197"
+                      target="_blank"
+                      text="linkendin"
+                      className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="relative w-full">
+                  <AnimatedNotebookLines />
+                </div>
+                <div className="relative w-full">
+                  <AnimatedNotebookLines />
+                </div>
+              </>
+            )}
 
             <div className="relative w-full">
               <AnimatedNotebookLines />
