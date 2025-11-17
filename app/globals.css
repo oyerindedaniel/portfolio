@@ -92,3 +92,46 @@ body {
   background: var(--background);
   color: var(--foreground-muted);
 }
+/* remove native styles so inline background is visible */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  background: transparent;
+}
+
+/* keep a visible track height but make its background transparent */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: theme("spacing[1.5]");
+  border-radius: theme("borderRadius.full");
+  background: transparent;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: theme("spacing.3");
+  height: theme("spacing.3");
+  margin-top: calc((theme("spacing[1.5]") / 2) - (theme("spacing.3") / 2));
+  background: var(--accent-primary);
+  border-radius: theme("borderRadius.full");
+  box-shadow: theme("boxShadow.lg");
+  cursor: pointer;
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-track {
+  height: theme("spacing[1.5]");
+  border-radius: theme("borderRadius.full");
+  background: transparent;
+}
+input[type="range"]::-moz-range-thumb {
+  width: theme("spacing.3");
+  height: theme("spacing.3");
+  background: var(--accent-primary);
+  border-radius: theme("borderRadius.full");
+}
+input[type="range"]::-moz-range-progress {
+  height: theme("spacing[1.5]");
+  background: var(--accent-primary);
+  border-radius: theme("borderRadius.full");
+}

@@ -20,12 +20,14 @@ const buttonVariants = cva(
       variant: {
         none: "before:hidden after:hidden",
         solid:
-          "bg-brand-blue text-white hover:bg-primary before:hidden after:hidden rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+          "bg-brand-blue text-white hover:bg-primary before:hidden rounded-3xl after:hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+        brand:
+          "before:hidden after:hidden text-brand-blue border border-brand-blue rounded-3xl hover:bg-white focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white",
         outline:
           "border border-gray-300 bg-white/90 backdrop-blur-sm hover:bg-gray-50 before:hidden after:hidden rounded-3xl focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
       },
       size: {
-        icon: "p-2 size-10 flex items-center justify-center",
+        icon: "p-2 size-10 flex items-center justify-center rounded-full",
         sm: "px-4 py-2 text-sm",
         md: "px-6 py-2.5",
       },

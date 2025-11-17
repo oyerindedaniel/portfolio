@@ -7,7 +7,7 @@ interface BaseHandwritingTextProps {
   offsetY?: number; // Override default offset Y
 }
 
-type HandwritingTextProps<T extends React.ElementType> =
+export type HandwritingTextProps<T extends React.ElementType> =
   BaseHandwritingTextProps & {
     as?: T;
   } & Omit<
@@ -18,19 +18,8 @@ type HandwritingTextProps<T extends React.ElementType> =
 export type PolymorphicRef<T extends React.ElementType> =
   React.ComponentPropsWithRef<T>["ref"];
 
-type HandwritingTextComponent = <T extends React.ElementType = "p">(
-  props: HandwritingTextProps<T> & { ref?: PolymorphicRef<T> }
-) => React.ReactElement | null;
-
-const HandwritingTextInner = <T extends React.ElementType = "p">(
-  {
-    text,
-    as,
-    lineHeight,
-    offsetY,
-    wordSpacing,
-    ...rest
-  }: HandwritingTextProps<T>,
+export const HandwritingText = <T extends React.ElementType = "p">(
+  { text, as, lineHeight, offsetY, ...rest }: HandwritingTextProps<T>,
   ref?: PolymorphicRef<T>
 ) => {
   const Tag = as || ("p" as React.ElementType);
@@ -81,11 +70,4 @@ const HandwritingTextInner = <T extends React.ElementType = "p">(
   );
 };
 
-export const HandwritingText: HandwritingTextComponent = React.memo(
-  React.forwardRef(
-    HandwritingTextInner as React.ForwardRefRenderFunction<
-      Element,
-      BaseHandwritingTextProps & { as?: React.ElementType }
-    >
-  )
-) as HandwritingTextComponent;
+// export const HandwritingText;

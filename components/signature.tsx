@@ -9,14 +9,14 @@ import React, {
   forwardRef,
   memo,
 } from "react";
-import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/cn";
 import { useComposedRefs } from "@/hooks/use-compose-refs";
-import { useLatestValue } from "@/hooks/use-latest-value";
 import { useStableHandler } from "@/hooks/use-stable-handler";
 import { useIsoLayoutEffect } from "@/hooks/use-Isomorphic-layout-effect";
 import { useClientOnly } from "@/hooks/use-client-only";
 import { useRAF } from "@/hooks/use-raf";
+import { Button } from "./ui/button";
+import { HitArea } from "./hit-area";
 
 // ============================================================================
 // VIEWPORT AUTOPLAY
@@ -319,7 +319,11 @@ export interface SignatureController {
   readonly isPaused: boolean;
   readonly isCompleted: boolean;
   readonly isLooping: boolean;
-  exportSvg(): Promise<string>;
+  exportSvg(options?: {
+    animated?: boolean;
+    duration?: number;
+    loop?: boolean;
+  }): Promise<string>;
   exportPng(scale?: number): Promise<Blob>;
   exportGif(options?: {
     fps?: number;
@@ -504,8 +508,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Path registry
-  const pathsRef = useRef<Record<string, PathRecord>>({});
-  const pathOrderRef = useRef<string[]>([]);
+  const pathsMapRef = useRef<Map<string, PathRecord>>(new Map());
 
   // Animation state machine
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
@@ -518,13 +521,21 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
   const progressRef = useRef(0);
   const durationTotalRef = useRef(durationProp);
 
-  const speedRef = useLatestValue(speedProp);
-  const loopRef = useLatestValue(loopProp);
+  const speedRef = useRef(speedProp);
+  const loopRef = useRef(loopProp);
 
   // Accessibility IDs
   const seekSliderId = React.useId();
   const currentTimeId = React.useId();
   const durationId = React.useId();
+
+  useEffect(() => {
+    speedRef.current = speedProp;
+  }, [speedProp]);
+
+  useEffect(() => {
+    loopRef.current = loopProp;
+  }, [loopProp]);
 
   const config = useMemo(
     () => ({
@@ -571,10 +582,8 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
    */
   const computeGlobalDuration = useCallback(() => {
     let max = config.duration;
-    const registry = pathsRef.current;
 
-    for (const key in registry) {
-      const rec = registry[key];
+    for (const rec of pathsMapRef.current.values()) {
       const end = rec.delay + rec.duration;
       if (end > max) max = end;
     }
@@ -589,8 +598,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
     (record: PathRecord): string => {
       const id = record.id || `path_${Math.random().toString(36).slice(2, 9)}`;
       record.id = id;
-      pathsRef.current[id] = record;
-      pathOrderRef.current.push(id);
+      pathsMapRef.current.set(id, record);
       durationTotalRef.current = computeGlobalDuration();
       return id;
     },
@@ -602,8 +610,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
    */
   const unregisterPath = useCallback(
     (id: string) => {
-      delete pathsRef.current[id];
-      pathOrderRef.current = pathOrderRef.current.filter((x) => x !== id);
+      pathsMapRef.current.delete(id);
       durationTotalRef.current = computeGlobalDuration();
     },
     [computeGlobalDuration]
@@ -613,7 +620,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
    * Get path record by ID
    */
   const getPathRecord = useCallback((id: string): PathRecord | null => {
-    return pathsRef.current[id] || null;
+    return pathsMapRef.current.get(id) || null;
   }, []);
 
   /**
@@ -688,10 +695,8 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
   const applyProgressToPaths = useCallback(
     (globalProgress: number) => {
       const totalMs = durationTotalRef.current;
-      const registry = pathsRef.current;
 
-      for (const id of pathOrderRef.current) {
-        const record = registry[id];
+      for (const record of pathsMapRef.current.values()) {
         if (!record?.ref.current) continue;
 
         // Skip if path is individually paused (path-level control)
@@ -751,12 +756,9 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
           progressRef.current = 0;
 
           // Reset path completion flags for loop
-          for (const id of pathOrderRef.current) {
-            const record = pathsRef.current[id];
-            if (record) {
-              record.hasStarted = false;
-              record.hasCompleted = false;
-            }
+          for (const record of pathsMapRef.current.values()) {
+            record.hasStarted = false;
+            record.hasCompleted = false;
           }
 
           if (onComplete) onComplete();
@@ -771,8 +773,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
           pausedAtRef.current = null;
 
           // Keep all paths at completion state (progress = 1)
-          for (const key in pathsRef.current) {
-            const record = pathsRef.current[key];
+          for (const record of pathsMapRef.current.values()) {
             record.progress = 1;
             updatePathVisual(record);
           }
@@ -817,8 +818,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
       progressRef.current = 0;
 
       // Reset all paths
-      for (const key in pathsRef.current) {
-        const record = pathsRef.current[key];
+      for (const record of pathsMapRef.current.values()) {
         record.hasStarted = false;
         record.hasCompleted = false;
       }
@@ -874,8 +874,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
     pausedAtRef.current = null;
 
     // Reset all paths
-    for (const key in pathsRef.current) {
-      const record = pathsRef.current[key];
+    for (const record of pathsMapRef.current.values()) {
       record.progress = 0;
       record.hasStarted = false;
       record.hasCompleted = false;
@@ -906,6 +905,9 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
   /**
    * Set playback speed
    */
+  /**
+   * Set playback speed
+   */
   const setSpeed = useCallback((multiplier: number) => {
     const newSpeed = Math.max(0.1, Math.min(10, multiplier));
 
@@ -924,138 +926,268 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
   /**
    * Export as SVG string
    */
-  const exportSvg = useCallback((): Promise<string> => {
-    return new Promise((resolve) => {
-      try {
-        const root = rootRef.current;
-        if (!root) {
-          resolve("");
-          return;
-        }
+  const exportSvg = useCallback(
+    (options?: {
+      animated?: boolean;
+      duration?: number;
+      loop?: boolean;
+    }): Promise<string> => {
+      return new Promise((resolve) => {
+        try {
+          const root = rootRef.current;
+          if (!root) {
+            resolve("");
+            return;
+          }
 
-        const svgEl =
-          root instanceof SVGSVGElement
-            ? root
-            : root.ownerSVGElement || root.closest("svg");
+          const svgEl =
+            root instanceof SVGSVGElement
+              ? root
+              : root.ownerSVGElement || root.closest("svg");
 
-        if (svgEl) {
+          if (!svgEl) {
+            resolve("");
+            return;
+          }
+
           const clone = svgEl.cloneNode(true) as SVGSVGElement;
 
-          const paths = clone.querySelectorAll("path");
-          paths.forEach((path) => {
-            const computedStyle = window.getComputedStyle(path);
-            path.setAttribute("stroke", computedStyle.stroke);
-            path.setAttribute("stroke-width", computedStyle.strokeWidth);
-            path.setAttribute("fill", computedStyle.fill);
+          clone.removeAttribute("class");
+          const viewBox = clone.getAttribute("viewBox");
+          if (viewBox) {
+            const [, , width, height] = viewBox.split(" ").map(Number);
+            clone.setAttribute("width", String(width));
+            clone.setAttribute("height", String(height));
+          }
+
+          const defs = clone.querySelector("defs");
+          if (defs) {
+            defs.remove();
+          }
+
+          const gWrapper = clone.querySelector('g[data-signature-root="true"]');
+          const paths = gWrapper
+            ? gWrapper.querySelectorAll("path")
+            : clone.querySelectorAll("path");
+
+          if (gWrapper && paths.length > 0) {
+            paths.forEach((path) => {
+              clone.appendChild(path.cloneNode(true));
+            });
+            gWrapper.remove();
+          }
+
+          const finalPaths = clone.querySelectorAll("path");
+
+          const pathRecordMap = new Map<string, PathRecord>();
+          for (const record of pathsMapRef.current.values()) {
+            if (record?.ref.current?.id) {
+              pathRecordMap.set(record.id, record);
+            }
+          }
+
+          finalPaths.forEach((path, _) => {
+            const originalId = path.id;
+            if (!originalId) return;
+
+            const original = svgEl.querySelector(`path[id="${originalId}"]`);
+            if (!original) return;
+            const computedStyle = window.getComputedStyle(original);
+
+            const pathRecord = pathRecordMap.get(originalId);
+
+            path.setAttribute("stroke", computedStyle.stroke || "#000");
+            path.setAttribute(
+              "stroke-width",
+              computedStyle.strokeWidth || "2.5"
+            );
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke-linecap", "round");
+            path.setAttribute("stroke-linejoin", "round");
+
+            if (options?.animated && pathRecord) {
+              const length = pathRecord.length;
+              const dur = (pathRecord.duration / 1000).toFixed(2);
+              const begin = (pathRecord.delay / 1000).toFixed(2);
+
+              path.setAttribute("stroke-dasharray", `${length}`);
+              path.setAttribute("stroke-dashoffset", `${length}`);
+
+              const animate = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "animate"
+              );
+              animate.setAttribute("attributeName", "stroke-dashoffset");
+              animate.setAttribute("from", `${length}`);
+              animate.setAttribute("to", "0");
+              animate.setAttribute("dur", `${dur}s`);
+              animate.setAttribute("begin", `${begin}s`);
+              animate.setAttribute("fill", "freeze");
+
+              if (options?.loop) {
+                animate.setAttribute("repeatCount", "indefinite");
+              }
+
+              path.appendChild(animate);
+            } else {
+              path.removeAttribute("stroke-dasharray");
+              path.removeAttribute("stroke-dashoffset");
+            }
+
+            path.removeAttribute("style");
           });
 
-          resolve(clone.outerHTML);
-        } else {
+          const serializer = new XMLSerializer();
+          let svgString = serializer.serializeToString(clone);
+
+          if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
+            svgString = svgString.replace(
+              "<svg",
+              '<svg xmlns="http://www.w3.org/2000/svg"'
+            );
+          }
+
+          resolve(svgString);
+        } catch (err) {
+          console.error("SVG export error:", err);
           resolve("");
         }
-      } catch (err) {
-        console.error("SVG export error:", err);
-        resolve("");
-      }
-    });
-  }, []);
+      });
+    },
+    []
+  );
 
   /**
    * Export as PNG blob
    */
-  const exportPng = useCallback((scale = 2): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      try {
-        const root = rootRef.current;
-        if (!root) {
-          reject(new Error("No root element"));
-          return;
-        }
+  const exportPng = useCallback(
+    (scale = 2): Promise<Blob> => {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const wasPlaying =
+            stateRef.current === "playing" || stateRef.current === "looping";
+          const currentProgress = progressRef.current;
 
-        const svgEl =
-          root instanceof SVGSVGElement
-            ? root
-            : root.ownerSVGElement || root.closest("svg");
+          if (wasPlaying) pause();
+          seek(1);
 
-        if (!svgEl) {
-          reject(new Error("No SVG element"));
-          return;
-        }
-
-        const bbox = svgEl.getBBox();
-        const viewBox = svgEl
-          .getAttribute("viewBox")
-          ?.split(" ")
-          .map(Number) || [0, 0, bbox.width, bbox.height];
-        const width = viewBox[2];
-        const height = viewBox[3];
-
-        const clone = svgEl.cloneNode(true) as SVGSVGElement;
-        clone.setAttribute("width", String(width));
-        clone.setAttribute("height", String(height));
-
-        const paths = clone.querySelectorAll("path");
-        paths.forEach((path) => {
-          const original = Array.from(svgEl.querySelectorAll("path")).find(
-            (p) => p.getAttribute("d") === path.getAttribute("d")
+          await new Promise((r) =>
+            requestAnimationFrame(() => setTimeout(r, 50))
           );
-          if (original) {
-            const computedStyle = window.getComputedStyle(original);
-            path.setAttribute("stroke", computedStyle.stroke);
-            path.setAttribute("stroke-width", computedStyle.strokeWidth);
-            path.setAttribute("fill", computedStyle.fill || "none");
+
+          const root = rootRef.current;
+          if (!root) {
+            reject(new Error("No root element"));
+            return;
           }
-        });
 
-        const svgString = new XMLSerializer().serializeToString(clone);
+          const svgEl =
+            root instanceof SVGSVGElement
+              ? root
+              : root.ownerSVGElement || root.closest("svg");
 
-        const svgBlob = new Blob([svgString], {
-          type: "image/svg+xml;charset=utf-8",
-        });
-        const url = URL.createObjectURL(svgBlob);
+          if (!svgEl) {
+            reject(new Error("No SVG element"));
+            return;
+          }
 
-        const img = new Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement("canvas");
-            canvas.width = width * scale;
-            canvas.height = height * scale;
+          const bbox = svgEl.getBBox();
+          const viewBox = svgEl
+            .getAttribute("viewBox")
+            ?.split(" ")
+            .map(Number) || [0, 0, bbox.width, bbox.height];
+          const width = viewBox[2];
+          const height = viewBox[3];
 
-            const ctx = canvas.getContext("2d");
-            if (!ctx) {
-              reject(new Error("Canvas context failed"));
-              URL.revokeObjectURL(url);
-              return;
+          const clone = svgEl.cloneNode(true) as SVGSVGElement;
+          clone.setAttribute("width", String(width));
+          clone.setAttribute("height", String(height));
+
+          if (!clone.hasAttribute("xmlns")) {
+            clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+          }
+
+          const paths = clone.querySelectorAll("path");
+          const originalPaths = svgEl.querySelectorAll("path");
+
+          paths.forEach((path, idx) => {
+            const original = originalPaths[idx];
+            if (original) {
+              const computedStyle = window.getComputedStyle(original);
+              path.setAttribute("stroke", computedStyle.stroke || "#000");
+              path.setAttribute(
+                "stroke-width",
+                computedStyle.strokeWidth || "2"
+              );
+              path.setAttribute("fill", "none");
+              path.setAttribute("stroke-linecap", "round");
+              path.setAttribute("stroke-linejoin", "round");
+
+              path.removeAttribute("stroke-dasharray");
+              path.removeAttribute("stroke-dashoffset");
+              path.removeAttribute("style");
             }
+          });
 
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob((blob) => {
-              URL.revokeObjectURL(url);
-              if (blob) {
-                resolve(blob);
-              } else {
-                reject(new Error("PNG export failed"));
+          const svgString = new XMLSerializer().serializeToString(clone);
+          const svgBlob = new Blob([svgString], {
+            type: "image/svg+xml;charset=utf-8",
+          });
+          const url = URL.createObjectURL(svgBlob);
+
+          const img = new Image();
+          img.onload = () => {
+            try {
+              const canvas = document.createElement("canvas");
+              canvas.width = width * scale;
+              canvas.height = height * scale;
+
+              const ctx = canvas.getContext("2d");
+              if (!ctx) {
+                reject(new Error("Canvas context failed"));
+                URL.revokeObjectURL(url);
+                return;
               }
-            }, "image/png");
-          } catch (err) {
+
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+              canvas.toBlob((blob) => {
+                URL.revokeObjectURL(url);
+
+                seek(currentProgress);
+                if (wasPlaying) play();
+
+                if (blob) {
+                  resolve(blob);
+                } else {
+                  reject(new Error("PNG export failed"));
+                }
+              }, "image/png");
+            } catch (err) {
+              URL.revokeObjectURL(url);
+              seek(currentProgress);
+              if (wasPlaying) play();
+              reject(err);
+            }
+          };
+
+          img.onerror = (e) => {
+            console.error("Image load error:", e);
             URL.revokeObjectURL(url);
-            reject(err);
-          }
-        };
+            seek(currentProgress);
+            if (wasPlaying) play();
+            reject(new Error("Image load failed"));
+          };
 
-        img.onerror = (e) => {
-          console.error("Image load error:", e);
-          URL.revokeObjectURL(url);
-          reject(new Error("Image load failed"));
-        };
-
-        img.src = url;
-      } catch (err) {
-        console.error("PNG export error:", err);
-        reject(err);
-      }
-    });
-  }, []);
+          img.src = url;
+        } catch (err) {
+          console.error("PNG export error:", err);
+          reject(err);
+        }
+      });
+    },
+    [pause, seek, play]
+  );
 
   /**
    * Export as GIF
@@ -1121,7 +1253,6 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
             const progress = i / frameCount;
             seek(progress);
 
-            // Wait for visual update
             await new Promise((r) =>
               requestAnimationFrame(() => setTimeout(r, 16))
             );
@@ -1130,29 +1261,42 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
             clone.setAttribute("width", String(width));
             clone.setAttribute("height", String(height));
 
+            if (!clone.hasAttribute("xmlns")) {
+              clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+            }
+
             const paths = clone.querySelectorAll("path");
             const originalPaths = svgEl.querySelectorAll("path");
+
             paths.forEach((path, idx) => {
               const original = originalPaths[idx];
               if (original) {
                 const computedStyle = window.getComputedStyle(original);
-                path.setAttribute("stroke", computedStyle.stroke);
-                path.setAttribute("stroke-width", computedStyle.strokeWidth);
+                path.setAttribute("stroke", computedStyle.stroke || "#000");
                 path.setAttribute(
-                  "stroke-dasharray",
-                  computedStyle.strokeDasharray
+                  "stroke-width",
+                  computedStyle.strokeWidth || "2"
                 );
-                path.setAttribute(
-                  "stroke-dashoffset",
-                  computedStyle.strokeDashoffset
-                );
-                path.setAttribute("fill", computedStyle.fill || "none");
-                if (
-                  computedStyle.transform &&
-                  computedStyle.transform !== "none"
-                ) {
-                  path.setAttribute("transform", computedStyle.transform);
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke-linecap", "round");
+                path.setAttribute("stroke-linejoin", "round");
+
+                const dashArray = computedStyle.strokeDasharray;
+                const dashOffset = computedStyle.strokeDashoffset;
+
+                if (dashArray && dashArray !== "none") {
+                  path.setAttribute("stroke-dasharray", dashArray);
                 }
+                if (dashOffset && dashOffset !== "0px") {
+                  path.setAttribute("stroke-dashoffset", dashOffset);
+                }
+
+                const transform = computedStyle.transform;
+                if (transform && transform !== "none") {
+                  path.setAttribute("transform", transform);
+                }
+
+                path.removeAttribute("style");
               }
             });
 
@@ -1165,7 +1309,8 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
             await new Promise<void>((resolveFrame, rejectFrame) => {
               const img = new Image();
               img.onload = () => {
-                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, width, height);
                 ctx.drawImage(img, 0, 0, width, height);
                 frames.push(ctx.getImageData(0, 0, width, height));
                 URL.revokeObjectURL(imageUrl);
@@ -1816,7 +1961,7 @@ export const SignaturePath = forwardRef<SVGPathElement, SignaturePathProps>(
       className,
       ...rest
     } = props;
-
+    const isClient = useClientOnly();
     const ctx = useSignatureContext();
 
     const localId = useMemo(() => {
@@ -1955,6 +2100,7 @@ export const SignaturePath = forwardRef<SVGPathElement, SignaturePathProps>(
         strokeLinejoin="round"
         className={className}
         {...rest}
+        {...(isClient ? { id: localId } : {})}
       />
     );
   }
@@ -2060,38 +2206,37 @@ export const SignatureControls = {
   /**
    * Root container for controls
    */
-  Root: memo((props: React.PropsWithChildren) => {
-    const { children } = props;
-    return <>{children}</>;
-  }),
+  Root: memo(
+    ({
+      children,
+      ...props
+    }: React.PropsWithChildren<React.ComponentProps<"div">>) => {
+      return <div {...props}>{children}</div>;
+    }
+  ),
 
   /**
    * Play/Pause button
    */
   PlayPause: memo(
-    forwardRef<
-      HTMLButtonElement,
-      React.ComponentProps<"button"> & { asChild?: boolean }
-    >((props, ref) => {
-      const { asChild, children, className, ...rest } = props;
-      const controller = useSignature();
-      const Comp = asChild ? Slot : "button";
+    forwardRef<HTMLButtonElement, React.ComponentProps<typeof Button>>(
+      (props, ref) => {
+        const { asChild, children, className, ...rest } = props;
+        const controller = useSignature();
 
-      return (
-        <Comp
-          ref={ref}
-          onClick={controller.toggle}
-          aria-pressed={controller.isPlaying}
-          className={cn(
-            "px-4 py-2 rounded-3xl bg-primary text-foreground-on-accent font-medium transition-colors hover:bg-primary-hover",
-            className
-          )}
-          {...rest}
-        >
-          {asChild ? children : controller.isPlaying ? "Pause" : "Play"}
-        </Comp>
-      );
-    })
+        return (
+          <Button
+            ref={ref}
+            onClick={controller.toggle}
+            aria-pressed={controller.isPlaying}
+            className={cn("", className)}
+            {...rest}
+          >
+            {asChild ? children : controller.isPlaying ? "Pause" : "Play"}
+          </Button>
+        );
+      }
+    )
   ),
 
   /**
@@ -2112,14 +2257,6 @@ export const SignatureControls = {
       const controller = useSignature();
       const [speed, setSpeedState] = useState(1);
 
-      const handleChange = useStableHandler(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-          const value = Number(e.target.value || 1);
-          setSpeedState(value);
-          controller.setSpeed(value);
-        }
-      );
-
       const setSpeed = useStableHandler((value: number) => {
         setSpeedState(value);
         controller.setSpeed(value);
@@ -2138,8 +2275,18 @@ export const SignatureControls = {
             max="2"
             step="0.05"
             value={speed}
-            onChange={handleChange}
-            className="w-full"
+            onChange={(e) => {
+              const value = Number(e.target.value || 1);
+              setSpeed(value);
+            }}
+            className="w-full bg-primary rounded-3xl"
+            style={{
+              background: `linear-gradient(
+                to right,
+                var(--accent-primary) ${((speed - 0.25) / (2 - 0.25)) * 100}%,
+                #d1d5dc 0
+              )`,
+            }}
           />
         </div>
       );
@@ -2439,28 +2586,30 @@ export const SignatureControls = {
           }
 
           return (
-            <div
-              ref={composedRefs}
-              role="slider"
-              id={ctx.seekSliderId}
-              aria-label="Seek signature"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={ariaValueNow}
-              aria-valuetext={ariaValueText}
-              aria-describedby={`${ctx.currentTimeId} ${ctx.durationId}`}
-              tabIndex={0}
-              onKeyDown={handleKeyDown}
-              className={cn(
-                "relative w-full h-1.5 bg-surface-tertiary rounded-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                className
-              )}
-              onClick={(e) => e.stopPropagation()}
-              onPointerDown={handlePointerDown}
-              {...rest}
-            >
-              {children}
-            </div>
+            <HitArea buffer={10} variant="y">
+              <div
+                ref={composedRefs}
+                role="slider"
+                id={ctx.seekSliderId}
+                aria-label="Seek signature"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={ariaValueNow}
+                aria-valuetext={ariaValueText}
+                aria-describedby={`${ctx.currentTimeId} ${ctx.durationId}`}
+                tabIndex={0}
+                onKeyDown={handleKeyDown}
+                className={cn(
+                  "relative w-full h-1.5 bg-gray-300 rounded-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                  className
+                )}
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={handlePointerDown}
+                {...rest}
+              >
+                {children}
+              </div>
+            </HitArea>
           );
         }
       )
@@ -2541,17 +2690,19 @@ export const SignatureControls = {
           }, ctx.state !== "idle");
 
           return (
-            <div
-              ref={composedRefs}
-              role="presentation"
-              aria-hidden="true"
-              className={cn(
-                "absolute top-1/2 left-0 w-3 h-3 rounded-full bg-primary shadow-lg pointer-events-none will-change-transform",
-                className
-              )}
-              style={style}
-              {...rest}
-            />
+            <HitArea buffer={8} variant="all">
+              <div
+                ref={composedRefs}
+                role="presentation"
+                aria-hidden="true"
+                className={cn(
+                  "absolute top-1/2 left-0 w-3 h-3 rounded-full bg-primary shadow-lg pointer-events-none will-change-transform",
+                  className
+                )}
+                style={style}
+                {...rest}
+              />
+            </HitArea>
           );
         }
       )
@@ -2660,19 +2811,25 @@ export const SignatureControls = {
       forwardRef<
         HTMLButtonElement,
         {
-          asChild?: boolean;
           format?: "svg" | "png" | "gif";
-        } & React.ComponentProps<"button">
+        } & React.ComponentProps<typeof Button> & {
+            downloadOptions?: Parameters<SignatureController["exportSvg"]>[0];
+          }
       >((props, forwardedRef) => {
-        const { asChild, className, format = "svg", children, ...rest } = props;
+        const {
+          className,
+          format = "svg",
+          children,
+          downloadOptions,
+          ...rest
+        } = props;
 
         const controller = useSignature();
-        const Comp = asChild ? Slot : "button";
 
-        const handleDownload = useStableHandler(async () => {
+        const handleDownload = async () => {
           try {
             if (format === "svg") {
-              const svgString = await controller.exportSvg();
+              const svgString = await controller.exportSvg(downloadOptions);
               const blob = new Blob([svgString], {
                 type: "image/svg+xml;charset=utf-8",
               });
@@ -2715,20 +2872,17 @@ export const SignatureControls = {
           } catch (err) {
             console.error("Export failed:", err);
           }
-        });
+        };
 
         return (
-          <Comp
+          <Button
             ref={forwardedRef}
             onClick={handleDownload}
-            className={cn(
-              "px-4 py-2 rounded-3xl bg-surface-secondary text-foreground-default font-medium transition-colors hover:bg-surface-hover",
-              className
-            )}
+            className={cn("", className)}
             {...rest}
           >
-            {asChild ? children : `Download ${format.toUpperCase()}`}
-          </Comp>
+            {children || `Download ${format.toUpperCase()}`}
+          </Button>
         );
       })
     ),
@@ -2750,7 +2904,7 @@ export const SignatureControls = {
 
         const onSvg = useStableHandler(async () => {
           try {
-            const svgString = await controller.exportSvg();
+            const svgString = await controller.exportSvg({ animated: false });
             const blob = new Blob([svgString], {
               type: "image/svg+xml;charset=utf-8",
             });

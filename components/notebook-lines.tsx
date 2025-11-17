@@ -6,18 +6,24 @@ export function NotebookLines({
   ...props
 }: React.SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
+    <div
+      className="w-full overflow-hidden relative"
+      style={{ maxWidth: width, height }}
     >
-      <line y1="45" x2={width} y2="45" stroke="var(--brand-blue)" />
-      <line y1="30" x2={width} y2="30" stroke="var(--brand-red)" />
-      <line y1="15" x2={width} y2="15" stroke="var(--brand-red)" />
-      <line y1="0" x2={width} y2="0" stroke="var(--brand-blue)" />
-    </svg>
+      <svg
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        preserveAspectRatio="xMinYMin slice"
+        {...props}
+      >
+        <line y1="45" x2={width} y2="45" stroke="var(--brand-blue)" />
+        <line y1="30" x2={width} y2="30" stroke="var(--brand-red)" />
+        <line y1="15" x2={width} y2="15" stroke="var(--brand-red)" />
+        <line y1="0" x2={width} y2="0" stroke="var(--brand-blue)" />
+      </svg>
+    </div>
   );
 }

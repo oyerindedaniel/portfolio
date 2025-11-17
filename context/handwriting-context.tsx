@@ -32,7 +32,7 @@ export const HandwritingProvider = ({ children }: React.PropsWithChildren) => {
     M: { fontSize: 45, offsetY: 0 },
     N: { fontSize: 44, offsetY: 0 },
     O: { fontSize: 45, offsetY: 0 },
-    P: { fontSize: 44, offsetY: 0 },
+    P: { fontSize: 38, offsetY: 0 },
     Q: { fontSize: 45, offsetY: 0 },
     R: { fontSize: 38, offsetY: 0 },
     S: { fontSize: 40, offsetY: 0 },
@@ -79,6 +79,8 @@ export const HandwritingProvider = ({ children }: React.PropsWithChildren) => {
     ".": { fontSize: 28, offsetY: 0 },
     "-": { fontSize: 34, offsetY: 0 },
     ":": { fontSize: 28, offsetY: 0 },
+    "(": { fontSize: 22, offsetY: 0 },
+    ")": { fontSize: 22, offsetY: 0 },
   };
 
   const config: HandwritingConfig = {
