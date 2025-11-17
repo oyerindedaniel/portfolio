@@ -703,14 +703,10 @@ export function Path() {
             </AnimatePresence>
 
             {showClickButton && (
-              <button
+              <Button
+                variant="red"
                 onClick={handlePaperClick}
-                className="absolute left-1/2 -translate-x-1/2  pointer-events-auto
-               px-8 py-3 bg-brand-red text-white 
-               rounded-full font-semibold text-base
-               cursor-pointer transition-transform outline-none 
-               duration-200 hover:scale-105 active:scale-95
-               shadow-lg z-10"
+                className="absolute left-1/2 -translate-x-1/2 pointer-events-auto px-8 py-3 font-semibold shadow-lg z-10"
                 aria-label="Click to view"
                 style={{
                   bottom: isSmallScreen
@@ -719,7 +715,7 @@ export function Path() {
                 }}
               >
                 Click to View
-              </button>
+              </Button>
             )}
           </div>
         </div>

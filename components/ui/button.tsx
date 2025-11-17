@@ -23,6 +23,7 @@ const buttonVariants = cva(
           "bg-brand-blue text-white hover:bg-primary before:hidden rounded-3xl after:hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white",
         brand:
           "before:hidden after:hidden text-brand-blue border border-brand-blue rounded-3xl hover:bg-white focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+        red: "before:hidden after:hidden bg-brand-red text-white rounded-3xl hover:bg-brand-red/80 focus-visible:ring-2 focus-visible:ring-brand-red focus-visible:ring-offset-2 focus-visible:ring-offset-white",
         outline:
           "border border-gray-300 bg-white/90 backdrop-blur-sm hover:bg-gray-50 before:hidden after:hidden rounded-3xl focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
       },
