@@ -890,11 +890,18 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
       const clamped = Math.max(0, Math.min(1, progress));
       progressRef.current = clamped;
 
-      // Adjust timing if playing
+      const totalMs = durationTotalRef.current;
+      const targetElapsed = (clamped * totalMs) / speedRef.current;
+
+      // Adjust timing for both playing and paused states
       if (stateRef.current === "playing" || stateRef.current === "looping") {
-        const totalMs = durationTotalRef.current;
-        const targetElapsed = (clamped * totalMs) / speedRef.current;
         startTimeRef.current = performance.now() - targetElapsed;
+      } else if (stateRef.current === "paused") {
+        // Update pausedAtRef to reflect the seeked position
+        // This ensures when play() resumes, it starts from the correct position
+        if (startTimeRef.current !== null) {
+          pausedAtRef.current = startTimeRef.current + targetElapsed;
+        }
       }
 
       applyProgressToPaths(clamped);
@@ -2505,6 +2512,7 @@ export const SignatureControls = {
             const handlePointerMove = (e: PointerEvent) => {
               if (!isDraggingRef.current) return;
               e.preventDefault();
+              e.stopPropagation();
 
               const progress = getProgressFromPosition(e.clientX);
 
@@ -2525,12 +2533,27 @@ export const SignatureControls = {
               setIsDragging(false);
             };
 
-            document.addEventListener("pointermove", handlePointerMove);
-            document.addEventListener("pointerup", handlePointerUp);
+            document.addEventListener("pointermove", handlePointerMove, {
+              capture: true,
+              passive: false,
+            });
+            document.addEventListener("pointerup", handlePointerUp, {
+              capture: true,
+            });
+            document.addEventListener("pointercancel", handlePointerUp, {
+              capture: true,
+            });
 
             return () => {
-              document.removeEventListener("pointermove", handlePointerMove);
-              document.removeEventListener("pointerup", handlePointerUp);
+              document.removeEventListener("pointermove", handlePointerMove, {
+                capture: true,
+              });
+              document.removeEventListener("pointerup", handlePointerUp, {
+                capture: true,
+              });
+              document.removeEventListener("pointercancel", handlePointerUp, {
+                capture: true,
+              });
             };
           }, [getProgressFromPosition, scheduleVisualUpdate, stableOnSeek]);
 

@@ -5,7 +5,7 @@ import { cva, VariantProps } from "class-variance-authority";
 const buttonVariants = cva(
   `relative overflow-hidden font-shadows-into-light !text-base cursor-pointer
   transform transition-transform duration-200
-  hover:scale-105 active:scale-95
+  hover:scale-103 active:scale-95
   before:content-[''] before:absolute before:bottom-0 before:left-0 before:h-[2px] before:w-full
   before:bg-(--brand-red) before:scale-x-0 before:origin-left before:transition-transform
   hover:before:scale-x-100 before:focus-visible:scale-x-100 before:focus-visible:bg-(--brand-red)

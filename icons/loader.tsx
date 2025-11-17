@@ -17,6 +17,7 @@ export const LoaderIcon: React.FC<LoaderIconProps> = ({
       height={size}
       viewBox="0 0 24 24"
       fill="none"
+      stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -25,12 +26,10 @@ export const LoaderIcon: React.FC<LoaderIconProps> = ({
     >
       <defs>
         <linearGradient id="loaderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--brand-blue)" />
-          <stop offset="100%" stopColor="var(--brand-red)" />
+          <stop offset="0%" stopColor="var(--brand-blue, #3b82f6)" />
+          <stop offset="100%" stopColor="var(--brand-red, #ef4444)" />
         </linearGradient>
       </defs>
-
-      <path d="M0 0h24v24H0z" fill="none" />
 
       <g stroke="url(#loaderGradient)">
         <path d="M12 6l0 -3" />

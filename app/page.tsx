@@ -19,7 +19,7 @@ import { LoaderIcon } from "@/icons/loader";
 
 export default function Home() {
   const { copy, copied, pending } = useCopy();
-  const isClient = useClientOnly();
+  const isClient = useClientOnly(500);
 
   const isMax808 = useMediaQuery("(max-width: 856px)"); // Collapse frame when viewport ≤ content + px-6 padding (808 + 24*2)
 
@@ -39,7 +39,7 @@ export default function Home() {
         <Path />
       </header>
 
-      <main className="mt-[17rem]">
+      <main className="mt-[272px]">
         <HandwritingProvider>
           <div className="flex flex-col gap-[15px]">
             <div className="relative">
@@ -96,11 +96,18 @@ export default function Home() {
               as="a"
               href="https://clip-editor-six.vercel.app"
               target="_blank"
-              text="Clip Editor (wip)  "
-              className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+              text="Clip Editor (wip)"
+              className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
             />
 
             <div className="relative w-full">
+              <AnimatedNotebookLines />
+              <div className="absolute inset-0 flex items-end p-4">
+                <HandwritingText text="" />
+              </div>
+            </div>
+
+            <div className="relative w-full min-[600px]:hidden">
               <AnimatedNotebookLines />
               <div className="absolute inset-0 flex items-end p-4">
                 <HandwritingText text="" />
@@ -141,6 +148,7 @@ export default function Home() {
                   </path>
                 </svg>
                 <Button
+                  type="button"
                   variant="none"
                   onClick={() => copy("oyerinde.daniel@yahoo.com")}
                   disabled={pending}
@@ -159,21 +167,21 @@ export default function Home() {
                   href="https://github.com/oyerindedaniel"
                   target="_blank"
                   text="github  "
-                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
                 />
                 <HandwritingText
                   as="a"
                   href="https://x.com/fybnow"
                   target="_blank"
                   text="twitter  "
-                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
                 />
                 <HandwritingText
                   as="a"
                   href="https://www.linkedin.com/in/daniel-oyerinde-300b53197"
                   target="_blank"
                   text="linkendin"
-                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
                 />
               </div>
             </div>
@@ -186,7 +194,7 @@ export default function Home() {
                   href="https://github.com/oyerindedaniel"
                   target="_blank"
                   text="github  "
-                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
                 />
               </div>
             </div>
@@ -199,7 +207,7 @@ export default function Home() {
                   href="https://x.com/fybnow"
                   target="_blank"
                   text="twitter  "
-                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
                 />
               </div>
             </div>
@@ -212,7 +220,7 @@ export default function Home() {
                   href="https://www.linkedin.com/in/daniel-oyerinde-300b53197"
                   target="_blank"
                   text="linkendin"
-                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-105 active:scale-95"
+                  className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
                 />
               </div>
             </div>

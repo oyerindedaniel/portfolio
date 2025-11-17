@@ -43,6 +43,10 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
   const [showAnimation, setShowAnimation] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
 
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const isSmallScreen = useMediaQuery("(max-width: 680px)");
 
   useEffect(() => {
@@ -58,12 +62,19 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
 
     signaturePadRef.current = pad;
 
+    pad.addEventListener("beginStroke", () => {
+      setHasInteracted(true);
+    });
+
     pad.addEventListener("endStroke", () => {
       setIsEmpty(pad.isEmpty());
     });
 
     return () => {
       pad.off();
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -72,10 +83,28 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     setSignaturePath("");
     setShowAnimation(false);
     setIsEmpty(true);
+
+    if (hasInteracted) {
+      showToastMessage();
+    }
+  };
+  const showToastMessage = () => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+
+    setShowToast(true);
+
+    toastTimeoutRef.current = setTimeout(() => {
+      setShowToast(false);
+    }, 2000);
   };
 
   const handleAnimate = () => {
-    if (!signaturePadRef.current || signaturePadRef.current.isEmpty()) return;
+    if (!signaturePadRef.current || signaturePadRef.current.isEmpty()) {
+      showToastMessage();
+      return;
+    }
 
     const data = signaturePadRef.current.toData();
     const paths = data.map((stroke) => {
@@ -113,16 +142,16 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     <FocusTrap>
       <div
         className={cn(
-          "relative flex items-center justify-center w-screen h-screen"
+          "relative flex items-center justify-center w-screen h-screen pointer-events-none"
         )}
       >
         <AnimatePresence>
-          {isEmpty && !showAnimation && (
+          {showToast && isEmpty && !showAnimation && (
             <motion.div
               initial={{ y: -20, opacity: 0, scale: 0.95, filter: "blur(4px)" }}
               animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
               exit={{ y: -20, opacity: 0, scale: 0.95, filter: "blur(4px)" }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
               className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-2 z-50 bg-slate-200 border border-slate-200 rounded-lg shadow-sm text-center"
               role="status"
               aria-live="polite"
@@ -335,16 +364,61 @@ export function Path() {
   }, [isOpen]);
 
   useEffect(() => {
-    if (isOpen && prevIsSmallScreen.current !== isSmallScreen) {
-      if (!isPaperExpanded) {
-        folderControls.set({
-          y: FOLDER_HEIGHT * (isSmallScreen ? 0.2 : 0.5),
-        });
-        paperSlideControls.set({
-          y: isSmallScreen ? -60 : -90,
-        });
+    if (!isOpen) {
+      prevIsSmallScreen.current = isSmallScreen;
+      return;
+    }
+
+    if (prevIsSmallScreen.current !== isSmallScreen) {
+      if (isPaperExpanded) {
+        if (isSmallScreen) {
+          folderControls.start({
+            y: FOLDER_HEIGHT * 0.2,
+            z: 0,
+            rotateX: 0,
+            opacity: 1,
+            transition: { duration: 0 },
+          });
+        } else {
+          folderControls.start({
+            y: FOLDER_HEIGHT * 0.5,
+            z: -800,
+            rotateX: 35,
+            opacity: 0.5,
+            transition: { duration: 0 },
+          });
+        }
+      } else {
+        if (isSmallScreen) {
+          folderControls.start({
+            y: FOLDER_HEIGHT * 0.2,
+            z: 0,
+            rotateX: 0,
+            opacity: 1,
+            transition: { duration: 0 },
+          });
+
+          paperSlideControls.start({
+            y: -60,
+            transition: { duration: 0 },
+          });
+        } else {
+          folderControls.start({
+            y: FOLDER_HEIGHT * 0.5,
+            z: 0,
+            rotateX: 0,
+            opacity: 1,
+            transition: { duration: 0 },
+          });
+
+          paperSlideControls.start({
+            y: -80,
+            transition: { duration: 0 },
+          });
+        }
       }
     }
+
     prevIsSmallScreen.current = isSmallScreen;
   }, [isSmallScreen, isOpen, isPaperExpanded]);
 
@@ -537,36 +611,6 @@ export function Path() {
                           strokeWidth="1.5"
                         />
                       ))}
-
-                      {showClickButton && (
-                        <g
-                          role="button"
-                          tabIndex={0}
-                          aria-label="Click to view"
-                          onClick={handlePaperClick}
-                          className="cursor-pointer transition-transform outline-none duration-200 hover:scale-105 active:scale-95 origin-center"
-                        >
-                          <rect
-                            x="319"
-                            y="100"
-                            width="200"
-                            height="50"
-                            rx="25"
-                            fill="var(--brand-red)"
-                          />
-                          <title className="sr-only">Click to view</title>
-                          <text
-                            x="419"
-                            y="132"
-                            textAnchor="middle"
-                            fill="white"
-                            fontSize="18"
-                            fontWeight="600"
-                          >
-                            Click to View
-                          </text>
-                        </g>
-                      )}
                     </motion.g>
 
                     <g filter="url(#filter0_d_120_34)">
@@ -623,7 +667,7 @@ export function Path() {
               {isPaperExpanded && (
                 <motion.div
                   key="paper"
-                  className="absolute pointer-events-auto inset-0"
+                  className="absolute pointer-events-none inset-0"
                   initial={
                     isSmallScreen
                       ? { y: "100%", opacity: 1 }
@@ -657,6 +701,26 @@ export function Path() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {showClickButton && (
+              <button
+                onClick={handlePaperClick}
+                className="absolute left-1/2 -translate-x-1/2  pointer-events-auto
+               px-8 py-3 bg-brand-red text-white 
+               rounded-full font-semibold text-base
+               cursor-pointer transition-transform outline-none 
+               duration-200 hover:scale-105 active:scale-95
+               shadow-lg z-10"
+                aria-label="Click to view"
+                style={{
+                  bottom: isSmallScreen
+                    ? `calc(${FOLDER_HEIGHT * 0.2}px + 60px - 100px)`
+                    : `calc(${FOLDER_HEIGHT * 0.5}px + 80px - 125px)`,
+                }}
+              >
+                Click to View
+              </button>
+            )}
           </div>
         </div>
       </FocusTrap>
