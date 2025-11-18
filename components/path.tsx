@@ -163,20 +163,13 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
             </motion.div>
           )}
         </AnimatePresence>
-        <div
-          className="relative bg-transparent"
-          style={{
-            width,
-            height,
-            maxWidth,
-            maxHeight,
-          }}
-        >
-          <div className="absolute inset-0 rounded-lg bg-transparent overflow-hidden border-2 z-2 pointer-events-none border-gray-300 shadow-[0_20px_60px_rgba(0,0,0,0.3)]" />
+
+        <div className="relative bg-transparent w-fit h-fit">
+          <div className="absolute inset-0 rounded-lg bg-white overflow-hidden border-2 z-2 pointer-events-none border-gray-300 shadow-[0_20px_60px_rgba(0,0,0,0.3)]" />
           <div
             data-animate={showAnimation}
             className={cn(
-              "relative bg-transparent pointer-events-auto flex flex-col gap-6 p-6 transition-[clip-path] duration-1000 ease-in-out",
+              "relative bg-transparent pointer-events-auto flex flex-col gap-6 p-6 z-4 transition-[clip-path] duration-1000 ease-in-out",
               "data-[animate=true]:[clip-path:inset(0_0_0_0)]",
               "data-[animate=false]:[clip-path:inset(0_0_30%_0)]"
             )}
@@ -187,7 +180,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
               maxHeight,
             }}
           >
-            <div className="text-center text--foreground-muted text-xl font-medium">
+            <div className="text-center text-foreground-muted text-xl font-medium">
               Draw your signature
             </div>
 
