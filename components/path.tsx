@@ -164,14 +164,16 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
           )}
         </AnimatePresence>
 
-        <div className="relative bg-transparent w-fit h-fit">
-          <div className="absolute inset-0 rounded-lg bg-white overflow-hidden border-2 z-2 pointer-events-none border-gray-300 shadow-[0_20px_60px_rgba(0,0,0,0.3)]" />
+        <div
+          data-animate={showAnimation}
+          className="group relative rounded-lg overflow-hidden"
+        >
+          <div className="absolute inset-0 transition-[height] duration-500 ease-in-out rounded-lg bg-transparent overflow-hidden z-20 pointer-events-none border-2 border-gray-300 group-data-[animate=true]:h-[100%] group-data-[animate=false]:h-[70%]" />
           <div
-            data-animate={showAnimation}
             className={cn(
-              "relative bg-transparent pointer-events-auto flex flex-col gap-6 p-6 z-4 transition-[clip-path] duration-1000 ease-in-out",
-              "data-[animate=true]:[clip-path:inset(0_0_0_0)]",
-              "data-[animate=false]:[clip-path:inset(0_0_30%_0)]"
+              "relative pointer-events-auto bg-white flex flex-col gap-6 p-6 z-4 transition-[clip-path] duration-500 ease-in-out rounded-lg overflow-hidden",
+              "group-data-[animate=true]:[clip-path:inset(0_0_0_0_round_0.5rem)]",
+              "group-data-[animate=false]:[clip-path:inset(0_0_30%_0_round_0.5rem)]"
             )}
             style={{
               width,

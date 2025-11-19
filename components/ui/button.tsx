@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 import { cva, VariantProps } from "class-variance-authority";
 
 const buttonVariants = cva(
-  `relative overflow-hidden font-shadows-into-light !text-base cursor-pointer
+  `relative overflow-hidden font-shadows-into-light inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap !text-base cursor-pointer [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0
   transform transition-transform duration-200
   hover:scale-103 active:scale-95
   before:content-[''] before:absolute before:bottom-0 before:left-0 before:h-[2px] before:w-full
