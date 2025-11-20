@@ -332,6 +332,18 @@ export interface SignatureController {
   }): Promise<Blob>;
 }
 
+interface ExportSvgOptions {
+  animated?: boolean;
+  duration?: number;
+  loop?: boolean;
+}
+type ExportPngScale = Parameters<SignatureController["exportPng"]>[0];
+interface ExportGifOptions {
+  fps?: number;
+  quality?: number;
+  duration?: number;
+}
+
 /**
  * Per-path controller interface
  */
@@ -934,11 +946,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
    * Export as SVG string
    */
   const exportSvg = useCallback(
-    (options?: {
-      animated?: boolean;
-      duration?: number;
-      loop?: boolean;
-    }): Promise<string> => {
+    (options?: ExportSvgOptions): Promise<string> => {
       return new Promise((resolve) => {
         try {
           const root = rootRef.current;
@@ -957,31 +965,61 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
             return;
           }
 
+          const gWrapper = svgEl.querySelector(
+            'g[data-signature-root="true"]'
+          ) as SVGGElement | null;
+
+          let viewBoxX = 0,
+            viewBoxY = 0,
+            viewBoxWidth = 800,
+            viewBoxHeight = 200;
+
+          try {
+            const bbox = gWrapper ? gWrapper.getBBox() : svgEl.getBBox();
+            const padding = 10;
+            viewBoxX = bbox.x - padding;
+            viewBoxY = bbox.y - padding;
+            viewBoxWidth = bbox.width + padding * 2;
+            viewBoxHeight = bbox.height + padding * 2;
+          } catch (e) {
+            const viewBox = svgEl.getAttribute("viewBox");
+            if (viewBox) {
+              const [x, y, width, height] = viewBox.split(" ").map(Number);
+              viewBoxX = x;
+              viewBoxY = y;
+              viewBoxWidth = width;
+              viewBoxHeight = height;
+            }
+          }
+
           const clone = svgEl.cloneNode(true) as SVGSVGElement;
 
           clone.removeAttribute("class");
-          const viewBox = clone.getAttribute("viewBox");
-          if (viewBox) {
-            const [, , width, height] = viewBox.split(" ").map(Number);
-            clone.setAttribute("width", String(width));
-            clone.setAttribute("height", String(height));
-          }
+          clone.removeAttribute("style");
+          clone.setAttribute(
+            "viewBox",
+            `${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}`
+          );
+          clone.setAttribute("width", String(viewBoxWidth));
+          clone.setAttribute("height", String(viewBoxHeight));
 
           const defs = clone.querySelector("defs");
           if (defs) {
             defs.remove();
           }
 
-          const gWrapper = clone.querySelector('g[data-signature-root="true"]');
-          const paths = gWrapper
-            ? gWrapper.querySelectorAll("path")
+          const cloneWrapper = clone.querySelector(
+            'g[data-signature-root="true"]'
+          );
+          const paths = cloneWrapper
+            ? cloneWrapper.querySelectorAll("path")
             : clone.querySelectorAll("path");
 
-          if (gWrapper && paths.length > 0) {
+          if (cloneWrapper && paths.length > 0) {
             paths.forEach((path) => {
               clone.appendChild(path.cloneNode(true));
             });
-            gWrapper.remove();
+            cloneWrapper.remove();
           }
 
           const finalPaths = clone.querySelectorAll("path");
@@ -1200,11 +1238,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
    * Export as GIF
    */
   const exportGif = useCallback(
-    async (options?: {
-      fps?: number;
-      quality?: number;
-      duration?: number;
-    }): Promise<Blob> => {
+    async (options?: ExportGifOptions): Promise<Blob> => {
       const fps = options?.fps || 24;
       const quality = options?.quality || 10;
       const duration = options?.duration || durationTotalRef.current;
@@ -2628,6 +2662,7 @@ export const SignatureControls = {
                 )}
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={handlePointerDown}
+                onTouchStart={(e) => e.preventDefault()}
                 {...rest}
               >
                 {children}
@@ -2836,7 +2871,7 @@ export const SignatureControls = {
         {
           format?: "svg" | "png" | "gif";
         } & React.ComponentProps<typeof Button> & {
-            downloadOptions?: Parameters<SignatureController["exportSvg"]>[0];
+            downloadOptions?: ExportSvgOptions;
           }
       >((props, forwardedRef) => {
         const {
@@ -2918,16 +2953,18 @@ export const SignatureControls = {
         render,
       }: {
         render: (actions: {
-          onSvg: () => void;
-          onPng: () => void;
+          onSvg: (options?: ExportSvgOptions) => void;
+          onPng: (scale: ExportPngScale) => void;
           onGif: () => void;
         }) => React.ReactNode;
       }) => {
         const controller = useSignature();
 
-        const onSvg = useStableHandler(async () => {
+        const onSvg = async (options?: ExportSvgOptions) => {
           try {
-            const svgString = await controller.exportSvg({ animated: false });
+            const svgString = await controller.exportSvg(
+              options || { animated: true }
+            );
             const blob = new Blob([svgString], {
               type: "image/svg+xml;charset=utf-8",
             });
@@ -2942,11 +2979,11 @@ export const SignatureControls = {
           } catch (err) {
             console.error("SVG export failed:", err);
           }
-        });
+        };
 
-        const onPng = useStableHandler(async () => {
+        const onPng = async (scale?: ExportPngScale) => {
           try {
-            const blob = await controller.exportPng(2);
+            const blob = await controller.exportPng(scale || 2);
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
@@ -2958,14 +2995,11 @@ export const SignatureControls = {
           } catch (err) {
             console.error("PNG export failed:", err);
           }
-        });
+        };
 
-        const onGif = useStableHandler(async () => {
+        const onGif = async (options?: ExportGifOptions) => {
           try {
-            const blob = await controller.exportGif({
-              fps: 30,
-              duration: controller.duration.current,
-            });
+            const blob = await controller.exportGif(options);
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
@@ -2977,7 +3011,7 @@ export const SignatureControls = {
           } catch (err) {
             console.error("GIF export failed:", err);
           }
-        });
+        };
 
         return render({
           onSvg,

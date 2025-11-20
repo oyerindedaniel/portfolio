@@ -6,6 +6,10 @@ import {
   AnimatePresence,
   useAnimationControls,
   cubicBezier,
+  useMotionValue,
+  useMotionTemplate,
+  useTransform,
+  animate,
 } from "motion/react";
 import { flushSync } from "react-dom";
 import { cn } from "@/lib/cn";
@@ -19,6 +23,7 @@ import {
 import SignaturePad from "signature_pad";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { FocusTrap } from "./focus-trap";
+import { useIsoLayoutEffect } from "@/hooks/use-Isomorphic-layout-effect";
 
 interface ExpandedPaperProps {
   onClose: () => void;
@@ -49,6 +54,59 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
 
   const isSmallScreen = useMediaQuery("(max-width: 680px)");
 
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const clipPercentage = useMotionValue(30);
+  const clipPath = useMotionTemplate`inset(0 0 ${clipPercentage}% 0 round 0.5rem)`;
+
+  const borderHeight = useTransform(
+    clipPercentage,
+    (value) => `${100 - value}%`
+  );
+
+  useIsoLayoutEffect(() => {
+    if (!contentRef.current || showAnimation) {
+      clipPercentage.set(0);
+      return;
+    }
+
+    const calculateClipPercentage = () => {
+      if (!contentRef.current || !canvasRef.current) return;
+
+      const paperHeight = contentRef.current.offsetHeight;
+      const canvasHeight = canvasRef.current.offsetHeight;
+
+      const titleHeight = 28;
+      const buttonsHeight = 40;
+      const gaps = 24 * 3;
+      const padding = 48;
+
+      const nonAnimatedHeight =
+        titleHeight + canvasHeight + buttonsHeight + gaps + padding;
+      const clipAmount =
+        ((paperHeight - nonAnimatedHeight) / paperHeight) * 100;
+
+      const targetValue = showAnimation
+        ? 0
+        : Math.max(20, Math.min(clipAmount, 45));
+
+      animate(clipPercentage, targetValue, {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      });
+    };
+
+    calculateClipPercentage();
+
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(calculateClipPercentage);
+    });
+
+    observer.observe(contentRef.current);
+    return () => observer.disconnect();
+  }, [showAnimation]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -59,6 +117,29 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
       minWidth: 1.5,
       maxWidth: 3.5,
     });
+
+    // Patch: Override _createPoint
+    // Reason: Fix misalignment when canvas CSS size differs from its intrinsic pixel size.
+    // Need Signature Canvas === Signature Pad Canvas.
+
+    const padAny = pad as any;
+    const originalCreatePoint = padAny._createPoint.bind(pad);
+
+    padAny._createPoint = function (x: number, y: number, pressure: number) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      const scaledX = rect.left + (x - rect.left);
+      const scaledY = rect.top + (y - rect.top);
+
+      const point = originalCreatePoint(scaledX, scaledY, pressure);
+
+      point.x = (x - rect.left) * scaleX;
+      point.y = (y - rect.top) * scaleY;
+
+      return point;
+    };
 
     signaturePadRef.current = pad;
 
@@ -121,6 +202,12 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     const combinedPath = paths.join(" ");
     setSignaturePath(combinedPath);
     setShowAnimation(true);
+
+    animate(clipPercentage, 0, {
+      type: "spring",
+      stiffness: 200,
+      damping: 30,
+    });
   };
 
   const handleDrawAgain = () => {
@@ -128,7 +215,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     handleClear();
   };
 
-  const aspectRatio = isSmallScreen ? 3 / 4 : PAPER_WIDTH / PAPER_HEIGHT;
+  const aspectRatio = isSmallScreen ? 3 / 3.8 : PAPER_WIDTH / PAPER_HEIGHT;
 
   const widthLimit = `min(90vw, ${(90 * aspectRatio).toFixed(4)}vh)`;
   const heightLimit = `min(90vh, ${(90 / aspectRatio).toFixed(4)}vw)`;
@@ -140,11 +227,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
 
   return (
     <FocusTrap>
-      <div
-        className={cn(
-          "relative flex items-center justify-center w-screen h-screen pointer-events-none"
-        )}
-      >
+      <div>
         <AnimatePresence>
           {showToast && isEmpty && !showAnimation && (
             <motion.div
@@ -152,7 +235,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
               animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
               exit={{ y: -20, opacity: 0, scale: 0.95, filter: "blur(4px)" }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-2 z-50 bg-slate-200 border border-slate-200 rounded-lg shadow-sm text-center"
+              className="fixed top-0 left-1/2 -translate-x-1/2 px-4 py-2 z-50 bg-slate-200 border border-slate-200 rounded-lg shadow-sm text-center"
               role="status"
               aria-live="polite"
               aria-atomic="true"
@@ -164,22 +247,20 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
           )}
         </AnimatePresence>
 
-        <div
-          data-animate={showAnimation}
-          className="group relative rounded-lg overflow-hidden"
-        >
-          <div className="absolute inset-0 transition-[height] duration-500 ease-in-out rounded-lg bg-transparent overflow-hidden z-20 pointer-events-none border-2 border-gray-300 group-data-[animate=true]:h-[100%] group-data-[animate=false]:h-[70%]" />
-          <div
-            className={cn(
-              "relative pointer-events-auto bg-white flex flex-col gap-6 p-6 z-4 transition-[clip-path] duration-500 ease-in-out rounded-lg overflow-hidden",
-              "group-data-[animate=true]:[clip-path:inset(0_0_0_0_round_0.5rem)]",
-              "group-data-[animate=false]:[clip-path:inset(0_0_30%_0_round_0.5rem)]"
-            )}
+        <div className="group relative rounded-lg overflow-hidden">
+          <motion.div
+            className="absolute inset-0 rounded-lg bg-transparent overflow-hidden z-20 pointer-events-none border-2 border-gray-300"
+            style={{ height: borderHeight }}
+          />
+          <motion.div
+            ref={contentRef}
+            className="relative pointer-events-auto bg-white flex flex-col gap-6 p-6 z-4 rounded-lg overflow-hidden"
             style={{
               width,
               height,
               maxWidth,
               maxHeight,
+              clipPath,
             }}
           >
             <div className="text-center text-foreground-muted text-xl font-medium">
@@ -192,9 +273,10 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
                 width={PAD_WIDTH}
                 height={PAD_HEIGHT}
                 className={cn(
-                  "cursor-crosshair w-full",
+                  "cursor-crosshair w-full touch-none",
                   showAnimation ? "hidden" : "block"
                 )}
+                style={{ aspectRatio: PAD_WIDTH / PAD_HEIGHT }}
               />
               <SignatureRoot
                 key={signaturePath}
@@ -208,10 +290,11 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
                       viewBox={`0 0 ${PAD_WIDTH} ${PAD_HEIGHT}`}
                       preserveAspectRatio="xMidYMid meet"
                       className="w-full"
+                      style={{ aspectRatio: PAD_WIDTH / PAD_HEIGHT }}
                     >
                       <SignaturePath
                         d={signaturePath}
-                        strokeWidth={2.5}
+                        strokeWidth={3.5}
                         color="oklch(0.5 0 0)"
                       />
                     </SignatureCanvas>
@@ -305,7 +388,10 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
             </div>
 
             <Button
-              onClick={onClose}
+              onClick={() => {
+                setShowToast(false);
+                onClose();
+              }}
               variant="solid"
               size="icon"
               className="absolute top-4 right-4"
@@ -326,7 +412,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
                 />
               </svg>
             </Button>
-          </div>
+          </motion.div>
         </div>
       </div>
     </FocusTrap>
@@ -662,7 +748,7 @@ export function Path() {
               {isPaperExpanded && (
                 <motion.div
                   key="paper"
-                  className="absolute pointer-events-none inset-0"
+                  className="absolute pointer-events-none inset-0 flex items-center justify-center"
                   initial={
                     isSmallScreen
                       ? { y: "100%", opacity: 1 }

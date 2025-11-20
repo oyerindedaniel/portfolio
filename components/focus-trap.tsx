@@ -9,9 +9,7 @@ export const FocusTrap: React.FC<{ children: React.ReactNode }> = ({
   return (
     <div ref={containerRef}>
       <div tabIndex={0} aria-hidden="true" onFocus={handleFocusBefore} />
-
       {children}
-
       <div tabIndex={0} aria-hidden="true" onFocus={handleFocusAfter} />
     </div>
   );
