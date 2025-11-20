@@ -12,6 +12,7 @@ import {
   animate,
 } from "motion/react";
 import { flushSync } from "react-dom";
+import { useSearchParams, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { Button } from "./ui/button";
 import {
@@ -37,6 +38,145 @@ const FOLDER_HEIGHT = 636;
 const PAD_WIDTH = 580;
 const PAD_HEIGHT = 200;
 
+const springEasing = cubicBezier(0.34, 1.56, 0.64, 1);
+const smoothEasing = "easeInOut";
+
+const TRANSITIONS = {
+  smooth: { duration: 0.3, ease: smoothEasing },
+  smoothLong: { duration: 0.5, ease: smoothEasing },
+  spring: { duration: 0.7, ease: springEasing },
+  springMedium: { duration: 0.6, ease: springEasing },
+  springLong: { duration: 0.8, ease: springEasing },
+  springShort: { duration: 0.5, ease: springEasing },
+  fade: { duration: 0.3 },
+} as const;
+
+const createFolderVariants = (
+  isSmallScreen: boolean,
+  skipAnimations: boolean
+) => {
+  const mobileOpen = {
+    y: FOLDER_HEIGHT * 0.2,
+    z: 0,
+    rotateX: 0,
+    opacity: 1,
+  };
+
+  const desktopOpen = {
+    y: FOLDER_HEIGHT * 0.5,
+    z: 0,
+    rotateX: 0,
+    opacity: 1,
+  };
+
+  const desktopExpanded = {
+    y: FOLDER_HEIGHT * 0.5,
+    z: -800,
+    rotateX: 35,
+    opacity: 0.5,
+  };
+
+  const closed = {
+    y: FOLDER_HEIGHT,
+    z: 0,
+    rotateX: 0,
+    opacity: 1,
+  };
+
+  return {
+    closed: {
+      ...closed,
+      transition: skipAnimations ? { duration: 0 } : TRANSITIONS.smoothLong,
+    },
+    open: {
+      ...(isSmallScreen ? mobileOpen : desktopOpen),
+      transition: skipAnimations ? { duration: 0 } : TRANSITIONS.spring,
+    },
+    expanded: {
+      ...(isSmallScreen ? mobileOpen : desktopExpanded),
+      transition: skipAnimations ? { duration: 0 } : TRANSITIONS.springLong,
+    },
+    exit: {
+      ...closed,
+      opacity: 0,
+      transition: TRANSITIONS.smoothLong,
+    },
+  };
+};
+
+const createPaperSlideVariants = (
+  isSmallScreen: boolean,
+  skipAnimations: boolean
+) => {
+  const openY = isSmallScreen ? -60 : -80;
+  const closedY = 0;
+
+  return {
+    closed: {
+      y: closedY,
+      transition: skipAnimations ? { duration: 0 } : TRANSITIONS.smooth,
+    },
+    open: {
+      y: openY,
+      transition: skipAnimations ? { duration: 0 } : TRANSITIONS.springMedium,
+    },
+  };
+};
+
+const createPaperExpandVariants = (
+  isSmallScreen: boolean,
+  skipAnimations: boolean
+) => {
+  const mobileInitial = { y: "100%", opacity: 1 };
+  const desktopInitial = { scale: 0.8, z: -1000, opacity: 0 };
+  const final = { scale: 1, z: 0, opacity: 1 };
+
+  return {
+    initial: skipAnimations
+      ? isSmallScreen
+        ? { y: 0, opacity: 1 }
+        : final
+      : isSmallScreen
+      ? mobileInitial
+      : desktopInitial,
+    animate: skipAnimations
+      ? {}
+      : isSmallScreen
+      ? {
+          y: 0,
+          opacity: 1,
+          transition: TRANSITIONS.springMedium,
+        }
+      : {
+          ...final,
+          transition: TRANSITIONS.springShort,
+        },
+    animateValues: final, // Values only, for use with set()
+    exit: isSmallScreen
+      ? {
+          y: "100%",
+          opacity: 1,
+          transition: TRANSITIONS.smoothLong,
+        }
+      : {
+          ...desktopInitial,
+          transition: TRANSITIONS.smoothLong,
+        },
+  };
+};
+
+const toastVariants = {
+  initial: { y: -20, opacity: 0, scale: 0.95, filter: "blur(4px)" },
+  animate: { y: 0, opacity: 1, scale: 1, filter: "blur(0px)" },
+  exit: { y: -20, opacity: 0, scale: 0.95, filter: "blur(4px)" },
+};
+
+const controlsVariants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
 interface ExpandedPaperProps {
   onClose: () => void;
 }
@@ -48,7 +188,6 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
   const [showAnimation, setShowAnimation] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
 
-  const [hasInteracted, setHasInteracted] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -65,10 +204,9 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
   );
 
   useIsoLayoutEffect(() => {
-    if (!contentRef.current || showAnimation) {
-      clipPercentage.set(0);
-      return;
-    }
+    if (!contentRef.current || showAnimation) return;
+
+    let rafId: number | null = null;
 
     const calculateClipPercentage = () => {
       if (!contentRef.current || !canvasRef.current) return;
@@ -83,6 +221,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
 
       const nonAnimatedHeight =
         titleHeight + canvasHeight + buttonsHeight + gaps + padding;
+
       const clipAmount =
         ((paperHeight - nonAnimatedHeight) / paperHeight) * 100;
 
@@ -100,11 +239,19 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     calculateClipPercentage();
 
     const observer = new ResizeObserver(() => {
-      requestAnimationFrame(calculateClipPercentage);
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        calculateClipPercentage();
+      });
     });
 
     observer.observe(contentRef.current);
-    return () => observer.disconnect();
+
+    return () => {
+      observer.disconnect();
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, [showAnimation]);
 
   useEffect(() => {
@@ -143,10 +290,6 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
 
     signaturePadRef.current = pad;
 
-    pad.addEventListener("beginStroke", () => {
-      setHasInteracted(true);
-    });
-
     pad.addEventListener("endStroke", () => {
       setIsEmpty(pad.isEmpty());
     });
@@ -160,15 +303,16 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
   }, []);
 
   const handleClear = () => {
+    if (!signaturePadRef.current || signaturePadRef.current.isEmpty()) {
+      showToastMessage();
+      return;
+    }
     signaturePadRef.current?.clear();
     setSignaturePath("");
     setShowAnimation(false);
     setIsEmpty(true);
-
-    if (hasInteracted) {
-      showToastMessage();
-    }
   };
+
   const showToastMessage = () => {
     if (toastTimeoutRef.current) {
       clearTimeout(toastTimeoutRef.current);
@@ -231,10 +375,11 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
         <AnimatePresence>
           {showToast && isEmpty && !showAnimation && (
             <motion.div
-              initial={{ y: -20, opacity: 0, scale: 0.95, filter: "blur(4px)" }}
-              animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
-              exit={{ y: -20, opacity: 0, scale: 0.95, filter: "blur(4px)" }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              variants={toastVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={TRANSITIONS.fade}
               className="fixed top-0 left-1/2 -translate-x-1/2 px-4 py-2 z-50 bg-slate-200 border border-slate-200 rounded-lg shadow-sm text-center"
               role="status"
               aria-live="polite"
@@ -263,11 +408,11 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
               clipPath,
             }}
           >
-            <div className="text-center text-foreground-muted text-xl font-medium">
+            <div className="relative z-10 text-center text-foreground-muted text-xl font-medium">
               Draw your signature
             </div>
 
-            <div className="relative w-full bg-slate-50 border border-slate-200 border-dashed rounded">
+            <div className="relative z-10 w-full bg-slate-50 border border-slate-200 border-dashed rounded">
               <canvas
                 ref={canvasRef}
                 width={PAD_WIDTH}
@@ -301,15 +446,16 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
                   </div>
                 )}
 
-                <div className="w-full space-y-4 absolute mt-6">
+                <div className="absolute z-10 w-full space-y-4 mt-6">
                   <AnimatePresence mode="wait">
                     {showAnimation ? (
                       <motion.div
                         key="controls"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        variants={controlsVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={TRANSITIONS.fade}
                         className="w-full space-y-4"
                       >
                         <SignatureControls.Root className="w-full">
@@ -360,10 +506,11 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
                     ) : (
                       <motion.div
                         key="buttons"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        variants={controlsVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={TRANSITIONS.fade}
                         className="flex justify-center gap-4"
                       >
                         <Button
@@ -394,7 +541,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
               }}
               variant="solid"
               size="icon"
-              className="absolute top-4 right-4"
+              className="absolute top-4 right-4 z-20"
               aria-label="Close"
             >
               <svg
@@ -420,8 +567,11 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
 };
 
 export function Path() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isPaperExpanded, setIsPaperExpanded] = useState(false);
+  const [skipAnimations, setSkipAnimations] = useState(false);
 
   const folderRef = useRef<HTMLDivElement>(null);
   const folderControls = useAnimationControls();
@@ -431,8 +581,34 @@ export function Path() {
   const isSmallScreen = useMediaQuery("(max-width: 680px)");
   const prevIsSmallScreen = useRef(isSmallScreen);
 
-  const springEasing = cubicBezier(0.34, 1.56, 0.64, 1);
-  const smoothEasing = "easeInOut";
+  const folderVariants = createFolderVariants(isSmallScreen, skipAnimations);
+  const paperSlideVariants = createPaperSlideVariants(
+    isSmallScreen,
+    skipAnimations
+  );
+  const paperExpandVariants = createPaperExpandVariants(
+    isSmallScreen,
+    skipAnimations
+  );
+
+  useIsoLayoutEffect(() => {
+    const signatureParam = searchParams.get("signature");
+    if (signatureParam === "open") {
+      setSkipAnimations(true);
+      setIsOpen(true);
+      setIsPaperExpanded(true);
+      setShowClickButton(false);
+
+      // Set initial states without animation
+      const { transition: _, ...folderExpandedValues } =
+        folderVariants.expanded;
+      const { transition: __, ...paperSlideOpenValues } =
+        paperSlideVariants.open;
+      folderControls.set(folderExpandedValues);
+      paperSlideControls.set(paperSlideOpenValues);
+      paperExpandControls.set(paperExpandVariants.animateValues);
+    }
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -451,52 +627,31 @@ export function Path() {
     }
 
     if (prevIsSmallScreen.current !== isSmallScreen) {
+      const currentFolderVariants = createFolderVariants(isSmallScreen, true);
+      const currentPaperSlideVariants = createPaperSlideVariants(
+        isSmallScreen,
+        true
+      );
+
       if (isPaperExpanded) {
-        if (isSmallScreen) {
-          folderControls.start({
-            y: FOLDER_HEIGHT * 0.2,
-            z: 0,
-            rotateX: 0,
-            opacity: 1,
-            transition: { duration: 0 },
-          });
-        } else {
-          folderControls.start({
-            y: FOLDER_HEIGHT * 0.5,
-            z: -800,
-            rotateX: 35,
-            opacity: 0.5,
-            transition: { duration: 0 },
-          });
-        }
+        const { transition: _, ...expandedValues } =
+          currentFolderVariants.expanded;
+        folderControls.start({
+          ...expandedValues,
+          transition: { duration: 0 },
+        });
       } else {
-        if (isSmallScreen) {
-          folderControls.start({
-            y: FOLDER_HEIGHT * 0.2,
-            z: 0,
-            rotateX: 0,
-            opacity: 1,
-            transition: { duration: 0 },
-          });
-
-          paperSlideControls.start({
-            y: -60,
-            transition: { duration: 0 },
-          });
-        } else {
-          folderControls.start({
-            y: FOLDER_HEIGHT * 0.5,
-            z: 0,
-            rotateX: 0,
-            opacity: 1,
-            transition: { duration: 0 },
-          });
-
-          paperSlideControls.start({
-            y: -80,
-            transition: { duration: 0 },
-          });
-        }
+        const { transition: __, ...openValues } = currentFolderVariants.open;
+        const { transition: ___, ...slideOpenValues } =
+          currentPaperSlideVariants.open;
+        folderControls.start({
+          ...openValues,
+          transition: { duration: 0 },
+        });
+        paperSlideControls.start({
+          ...slideOpenValues,
+          transition: { duration: 0 },
+        });
       }
     }
 
@@ -505,44 +660,39 @@ export function Path() {
 
   const handleToggle = async () => {
     if (isOpen) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("signature");
+      router.replace(`?${params.toString()}`, { scroll: false });
+
       flushSync(() => {
         setIsPaperExpanded(false);
         setShowClickButton(false);
+        setSkipAnimations(false);
       });
 
-      await paperSlideControls.start({
-        y: 0,
-        transition: { duration: 0.3, ease: smoothEasing },
-      });
+      if (skipAnimations) {
+        setIsOpen(false);
+        return;
+      }
 
-      await folderControls.start({
-        y: FOLDER_HEIGHT,
-        z: 0,
-        rotateX: 0,
-        opacity: 1,
-        transition: { duration: 0.5, ease: smoothEasing },
-      });
-
+      await paperSlideControls.start(paperSlideVariants.closed);
+      await folderControls.start(folderVariants.closed);
       setIsOpen(false);
     } else {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("signature", "open");
+      router.replace(`?${params.toString()}`, { scroll: false });
+
       flushSync(() => setIsOpen(true));
 
-      await folderControls.start({
-        y: FOLDER_HEIGHT * (isSmallScreen ? 0.2 : 0.5),
-        transition: {
-          duration: 0.7,
-          ease: springEasing,
-        },
-      });
+      if (skipAnimations) {
+        setShowClickButton(false);
+        setIsPaperExpanded(true);
+        return;
+      }
 
-      await paperSlideControls.start({
-        y: isSmallScreen ? -60 : -80,
-        transition: {
-          duration: 0.6,
-          ease: springEasing,
-        },
-      });
-
+      await folderControls.start(folderVariants.open);
+      await paperSlideControls.start(paperSlideVariants.open);
       setShowClickButton(true);
     }
   };
@@ -567,33 +717,24 @@ export function Path() {
         setIsPaperExpanded(true);
       });
 
+      if (skipAnimations) {
+        const { transition: _, ...folderExpandedValues } =
+          folderVariants.expanded;
+        folderControls.set(folderExpandedValues);
+        paperExpandControls.set(paperExpandVariants.animateValues);
+        return;
+      }
+
       if (isSmallScreen) {
         // Mobile: folder stays in place, paper slides up from it
         await new Promise((resolve) => setTimeout(resolve, 100));
+        await paperExpandControls.start(paperExpandVariants.animate);
       } else {
         // Desktop: folder moves back in 3D space, paper zooms forward
-        const folderAnimation = folderControls.start({
-          z: -800,
-          rotateX: 35,
-          opacity: 0.5,
-          transition: {
-            duration: 0.8,
-            ease: springEasing,
-          },
-        });
-
+        const folderAnimation = folderControls.start(folderVariants.expanded);
         setTimeout(() => {
-          paperExpandControls.start({
-            scale: 1,
-            z: 0,
-            opacity: 1,
-            transition: {
-              duration: 0.5,
-              ease: springEasing,
-            },
-          });
+          paperExpandControls.start(paperExpandVariants.animate);
         }, 400);
-
         await folderAnimation;
       }
     }
@@ -616,7 +757,7 @@ export function Path() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={TRANSITIONS.fade}
             onClick={handleToggle}
             role="button"
             tabIndex={0}
@@ -643,18 +784,15 @@ export function Path() {
                   key="folder"
                   ref={folderRef}
                   className="absolute pointer-events-auto w-full max-w-[838px] aspect-[838/636] bottom-0 left-1/2 -translate-x-1/2 [transform-style:preserve-3d] [transform-origin:center_bottom]"
-                  initial={{
-                    y: FOLDER_HEIGHT,
-                    z: 0,
-                    rotateX: 0,
-                    opacity: 1,
-                  }}
-                  animate={folderControls}
-                  exit={{
-                    y: FOLDER_HEIGHT,
-                    opacity: 0,
-                    transition: { duration: 0.5, ease: smoothEasing },
-                  }}
+                  initial={
+                    skipAnimations
+                      ? isPaperExpanded
+                        ? folderVariants.expanded
+                        : folderVariants.open
+                      : folderVariants.closed
+                  }
+                  animate={skipAnimations ? {} : folderControls}
+                  exit={folderVariants.exit}
                 >
                   <svg
                     viewBox="0 0 838 636"
@@ -668,7 +806,14 @@ export function Path() {
                       fill="var(--brand-blue)"
                     />
 
-                    <motion.g animate={paperSlideControls} initial={{ y: 0 }}>
+                    <motion.g
+                      animate={skipAnimations ? {} : paperSlideControls}
+                      initial={
+                        skipAnimations
+                          ? paperSlideVariants.open
+                          : paperSlideVariants.closed
+                      }
+                    >
                       <rect
                         x="69"
                         y="150"
@@ -749,34 +894,9 @@ export function Path() {
                 <motion.div
                   key="paper"
                   className="absolute pointer-events-none inset-0 flex items-center justify-center"
-                  initial={
-                    isSmallScreen
-                      ? { y: "100%", opacity: 1 }
-                      : { scale: 0.8, z: -1000, opacity: 0 }
-                  }
-                  animate={
-                    isSmallScreen
-                      ? {
-                          y: 0,
-                          opacity: 1,
-                          transition: { duration: 0.6, ease: springEasing },
-                        }
-                      : paperExpandControls
-                  }
-                  exit={
-                    isSmallScreen
-                      ? {
-                          y: "100%",
-                          opacity: 1,
-                          transition: { duration: 0.5, ease: smoothEasing },
-                        }
-                      : {
-                          scale: 0.8,
-                          z: -1000,
-                          opacity: 0,
-                          transition: { duration: 0.5, ease: smoothEasing },
-                        }
-                  }
+                  initial={paperExpandVariants.initial}
+                  animate={skipAnimations ? {} : paperExpandControls}
+                  exit={paperExpandVariants.exit}
                 >
                   <ExpandedPaper onClose={handleToggle} />
                 </motion.div>

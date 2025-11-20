@@ -15,18 +15,15 @@ export function useRAF(
 ): void {
   const stableCallback = useStableHandler(callback);
 
-  useEffect(
-    function () {
-      if (!enabled) return;
+  useEffect(() => {
+    if (!enabled) return;
 
-      const unsubscribe = globalRAF.subscribe(function (time, deltaTime) {
-        stableCallback(time, deltaTime);
-      }, id);
+    const unsubscribe = globalRAF.subscribe((time, deltaTime) => {
+      stableCallback(time, deltaTime);
+    }, id);
 
-      return unsubscribe;
-    },
-    [enabled, id]
-  );
+    return unsubscribe;
+  }, [enabled, id]);
 }
 
 /**
@@ -41,12 +38,9 @@ export function useRAFTrigger(
 ): void {
   const stableCallback = useStableHandler(callback);
 
-  useEffect(
-    function () {
-      return globalRAF.registerTriggerHandler(id, function (time, deltaTime) {
-        stableCallback(time, deltaTime);
-      });
-    },
-    [id]
-  );
+  useEffect(() => {
+    return globalRAF.registerTriggerHandler(id, (time, deltaTime) => {
+      stableCallback(time, deltaTime);
+    });
+  }, [id]);
 }

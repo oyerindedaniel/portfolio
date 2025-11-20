@@ -905,15 +905,18 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
       const totalMs = durationTotalRef.current;
       const targetElapsed = (clamped * totalMs) / speedRef.current;
 
+      if (stateRef.current === "completed") {
+        stateRef.current = "paused";
+      }
+
       // Adjust timing for both playing and paused states
       if (stateRef.current === "playing" || stateRef.current === "looping") {
         startTimeRef.current = performance.now() - targetElapsed;
       } else if (stateRef.current === "paused") {
-        // Update pausedAtRef to reflect the seeked position
-        // This ensures when play() resumes, it starts from the correct position
-        if (startTimeRef.current !== null) {
-          pausedAtRef.current = startTimeRef.current + targetElapsed;
-        }
+        // Set startTimeRef to progress time
+        const now = performance.now();
+        startTimeRef.current = now - targetElapsed;
+        pausedAtRef.current = now;
       }
 
       applyProgressToPaths(clamped);
@@ -2521,7 +2524,9 @@ export const SignatureControls = {
 
           const handlePointerDown = useCallback(
             (e: React.PointerEvent) => {
-              e.preventDefault();
+              if (e.pointerType !== "touch") {
+                e.preventDefault();
+              }
               e.stopPropagation();
 
               const track = trackRef.current;
@@ -2529,14 +2534,14 @@ export const SignatureControls = {
 
               isDraggingRef.current = true;
               setIsDragging(true);
-              track.setPointerCapture(e.pointerId);
+
+              try {
+                track.setPointerCapture(e.pointerId);
+              } catch (err) {}
 
               const progress = getProgressFromPosition(e.clientX);
 
-              // Immediate visual update
               scheduleVisualUpdate(progress);
-
-              // Actual seek
               stableOnSeek(progress);
             },
             [getProgressFromPosition, scheduleVisualUpdate, stableOnSeek]
@@ -2545,7 +2550,10 @@ export const SignatureControls = {
           useEffect(() => {
             const handlePointerMove = (e: PointerEvent) => {
               if (!isDraggingRef.current) return;
-              e.preventDefault();
+
+              if (e.pointerType !== "touch") {
+                e.preventDefault();
+              }
               e.stopPropagation();
 
               const progress = getProgressFromPosition(e.clientX);
@@ -2560,7 +2568,9 @@ export const SignatureControls = {
 
               const track = trackRef.current;
               if (track) {
-                track.releasePointerCapture(e.pointerId);
+                try {
+                  track.releasePointerCapture(e.pointerId);
+                } catch (err) {}
               }
 
               isDraggingRef.current = false;
@@ -2568,26 +2578,15 @@ export const SignatureControls = {
             };
 
             document.addEventListener("pointermove", handlePointerMove, {
-              capture: true,
               passive: false,
             });
-            document.addEventListener("pointerup", handlePointerUp, {
-              capture: true,
-            });
-            document.addEventListener("pointercancel", handlePointerUp, {
-              capture: true,
-            });
+            document.addEventListener("pointerup", handlePointerUp);
+            document.addEventListener("pointercancel", handlePointerUp);
 
             return () => {
-              document.removeEventListener("pointermove", handlePointerMove, {
-                capture: true,
-              });
-              document.removeEventListener("pointerup", handlePointerUp, {
-                capture: true,
-              });
-              document.removeEventListener("pointercancel", handlePointerUp, {
-                capture: true,
-              });
+              document.removeEventListener("pointermove", handlePointerMove);
+              document.removeEventListener("pointerup", handlePointerUp);
+              document.removeEventListener("pointercancel", handlePointerUp);
             };
           }, [getProgressFromPosition, scheduleVisualUpdate, stableOnSeek]);
 
@@ -2660,9 +2659,11 @@ export const SignatureControls = {
                   "relative w-full h-1.5 bg-gray-300 rounded-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   className
                 )}
-                onClick={(e) => e.stopPropagation()}
+                style={{
+                  touchAction: "none",
+                  ...rest.style,
+                }}
                 onPointerDown={handlePointerDown}
-                onTouchStart={(e) => e.preventDefault()}
                 {...rest}
               >
                 {children}

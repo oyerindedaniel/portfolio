@@ -5,6 +5,7 @@ import { HandwritingText } from "@/components/handwriting-text";
 import { HandwritingProvider } from "@/context/handwriting-context";
 import { Button } from "@/components/ui/button";
 import { CopyIcon } from "@/icons/copy";
+import { CheckIcon } from "@/icons/check";
 import { SignatureName } from "@/components/signature-name";
 import jujutsu from "../public/jujustu.jpg";
 import { AnimatedNotebookLines } from "@/components/animated-notebook-lines";
@@ -72,7 +73,7 @@ export default function Home() {
 
             <HandwritingLine>2*-years-old creative male.</HandwritingLine>
             <HandwritingLine>Full-Stack TypeScript Engineer.</HandwritingLine>
-            {/* <HandwritingLine>Currently learning Python.</HandwritingLine> */}
+            {/* <HandwritingLine>Currently learning Several things.</HandwritingLine> */}
             <HandwritingLine>I love engineering systems-</HandwritingLine>
             <HandwritingLine>
               building software that work seamlessly and scale effortlessly.
@@ -115,11 +116,13 @@ export default function Home() {
                   <Button
                     type="button"
                     variant="none"
-                    onClick={() => copy("oyerinde.daniel@yahoo.com")}
+                    onClick={(e) => {
+                      copy("oyerinde.daniel@yahoo.com");
+                    }}
                     disabled={pending}
                     size="icon"
                   >
-                    <CopyIcon />
+                    {copied ? <CheckIcon /> : <CopyIcon />}
                   </Button>
                 }
               >
