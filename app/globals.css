@@ -94,10 +94,11 @@ html {
 
 body {
   background: var(--background);
-  color: var(--foreground-muted);
+  color: black;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
 /* remove native styles so inline background is visible */
 input[type="range"] {
   -webkit-appearance: none;

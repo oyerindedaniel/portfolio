@@ -29,7 +29,7 @@ const buttonVariants = cva(
       },
       size: {
         icon: "p-2 size-10 flex items-center justify-center rounded-full",
-        sm: "px-4 py-2 text-sm",
+        sm: "px-4 py-1.5 text-sm",
         md: "px-6 py-2.5",
       },
     },

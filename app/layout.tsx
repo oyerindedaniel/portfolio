@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { geistMono, geistSans, shadowsIntoLight } from "@/lib/fonts";
 import { cn } from "../lib/cn";
+import { HandwritingProvider } from "@/context/handwriting-context";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://oyerindedaniel.com";
@@ -69,7 +70,7 @@ export default function RootLayout(props: React.PropsWithChildren) {
           "antialiased px-6 min-h-dvh h-full"
         )}
       >
-        {props.children}
+        <HandwritingProvider>{props.children}</HandwritingProvider>
       </body>
     </html>
   );

@@ -260,7 +260,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
 
     const pad = new SignaturePad(canvas, {
       backgroundColor: "transparent",
-      penColor: "oklch(0.5 0 0)",
+      penColor: "oklch(0 0 0)",
       minWidth: 1.5,
       maxWidth: 3.5,
     });
@@ -268,7 +268,6 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     // Patch: Override _createPoint
     // Reason: Fix misalignment when canvas CSS size differs from its intrinsic pixel size.
     // Need Signature Canvas === Signature Pad Canvas.
-
     const padAny = pad as any;
     const originalCreatePoint = padAny._createPoint.bind(pad);
 
@@ -440,7 +439,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
                       <SignaturePath
                         d={signaturePath}
                         strokeWidth={3.5}
-                        color="oklch(0.5 0 0)"
+                        color="oklch(0 0 0)"
                       />
                     </SignatureCanvas>
                   </div>
@@ -741,7 +740,7 @@ export function Path() {
   };
 
   return (
-    <>
+    <div>
       <Button
         className="!text-lg"
         aria-label="your signature"
@@ -921,6 +920,6 @@ export function Path() {
           </div>
         </div>
       </FocusTrap>
-    </>
+    </div>
   );
 }
