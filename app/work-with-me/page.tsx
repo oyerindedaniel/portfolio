@@ -21,12 +21,12 @@ export default function WorkWithMePage() {
         <div className="sr-only">
           <h1>Work With Me — Oyerinde Daniel</h1>
           <p>
-            I’m always open to chatting about full-time roles or project-based
-            work — especially where I can help design, build, or refine real
-            products.
+            I&apos;m always open to chatting about full-time roles or
+            project-based work — especially where I can help design, build, or
+            refine real products.
           </p>
           <p>
-            I’m a full-stack developer with 4+ years of experience building
+            I&apos;m a full-stack developer with 4+ years of experience building
             production-ready web apps, APIs, and platforms. Worked across
             fintech and real-estate products — creating clean user interfaces
             and integrating features like payments, booking flows, user
@@ -82,26 +82,26 @@ export default function WorkWithMePage() {
         <HandwritingLine />
 
         <HandwritingLine>
-          I’m always open to chatting about full-time roles or project-based
-          work — especially where I can help design, build, or refine real
-          products.
+          I&apos;m always open to chatting about full-time roles or
+          project-based work — especially where I can help design, build, or
+          refine real products.
         </HandwritingLine>
 
         <HandwritingLine />
 
         <HandwritingLine>
-          I’m a full-stack developer with 4+ years of experience building
-          production-ready web apps, APIs, and platforms. I’ve worked across
-          fintech and real-estate products — creating clean user interfaces and
-          integrating features like payments, booking flows, user management,
-          and other real-world application workflows.
+          I&apos;m a full-stack developer with 4+ years of experience building
+          production-ready web apps, APIs, and platforms. I&apos;ve worked
+          across fintech and real-estate products — creating clean user
+          interfaces and integrating features like payments, booking flows, user
+          management, and other real-world application workflows.
         </HandwritingLine>
 
         <HandwritingLine />
 
         <HandwritingLine>
           While I primarily work with TypeScript and modern frontend tooling,
-          I’m comfortable across the stack and enjoy building features
+          I&apos;m comfortable across the stack and enjoy building features
           end-to-end in a way that balances practical engineering with solid
           architecture.
         </HandwritingLine>
@@ -110,7 +110,7 @@ export default function WorkWithMePage() {
 
         <HandwritingLine>
           I love working with founders, teams, and early-stage products —
-          whether it’s building new features, improving existing systems,
+          whether it&apos;s building new features, improving existing systems,
           choosing the right stack, or taking an idea from prototype to
           production. I prefer to work on projects where the goals are clear and
           where I can make a meaningful, visible impact.
@@ -119,7 +119,7 @@ export default function WorkWithMePage() {
         <HandwritingLine />
 
         <HandwritingLine>
-          If you'd like to work together or just want to chat, feel free to
+          If you&apos;d like to work together or just want to chat, feel free to
           reach out anytime.
         </HandwritingLine>
 
