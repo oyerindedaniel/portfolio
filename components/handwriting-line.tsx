@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, ReactNode, useCallback } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import {
   HandwritingText,
   HandwritingTextProps,
@@ -9,7 +9,6 @@ import { AnimatedNotebookLines } from "@/components/animated-notebook-lines";
 import { cn } from "@/lib/cn";
 import { useIsoLayoutEffect } from "@/hooks/use-Isomorphic-layout-effect";
 import { useHandwritingConfig } from "@/context/handwriting-context";
-import { useStableHandler } from "@/hooks/use-stable-handler";
 
 function useMeasureText() {
   const config = useHandwritingConfig();

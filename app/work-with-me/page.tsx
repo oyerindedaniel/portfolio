@@ -75,7 +75,7 @@ export default function WorkWithMePage() {
       </Button>
 
       <div className="flex flex-col">
-        <HandwritingLine as="h2" className="text-brand-red">
+        <HandwritingLine as="h2" className="text-black">
           Work With Me
         </HandwritingLine>
 

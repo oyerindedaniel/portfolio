@@ -2696,7 +2696,7 @@ export const SignatureControls = {
             if (el) {
               el.style.transform = `scaleX(${ctx.progress.current})`;
             }
-          }, ctx.state !== "idle");
+          }, ctx.state === "playing");
 
           return (
             <div
@@ -2746,7 +2746,7 @@ export const SignatureControls = {
               thumb.style.left = `${progress * 100}%`;
               thumb.style.transform = `translate3d(-50%, -50%, 0)`;
             }
-          }, ctx.state !== "idle");
+          }, ctx.state === "playing");
 
           return (
             <HitArea buffer={8} variant="all">
@@ -2808,7 +2808,7 @@ export const SignatureControls = {
             const text = (format || defaultFormat)(progress, duration);
             currentTimeRef.current.textContent = text;
           }
-        }, ctx.state !== "idle");
+        }, ctx.state === "playing");
 
         const duration = ctx.duration.current;
         const progress = ctx.progress.current;

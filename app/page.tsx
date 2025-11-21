@@ -2,7 +2,6 @@
 
 import { Framed } from "@/components/framed";
 import { HandwritingText } from "@/components/handwriting-text";
-import { HandwritingProvider } from "@/context/handwriting-context";
 import { Button } from "@/components/ui/button";
 import { CopyIcon } from "@/icons/copy";
 import { CheckIcon } from "@/icons/check";
