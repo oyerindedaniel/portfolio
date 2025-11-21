@@ -26,7 +26,7 @@ export default function Home() {
   const isMax808 = useMediaQuery("(max-width: 856px)"); // Collapse frame when viewport ≤ content + px-6 padding (808 + 24*2)
 
   // @handwriting-line.tsx cannot run on server
-  // might change
+  // might change because i lose my crawlers
   if (!isClient) {
     return (
       <div className="h-dvh w-full flex items-center justify-center">
