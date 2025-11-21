@@ -6,7 +6,7 @@ import { cn } from "../lib/cn";
 import { HandwritingProvider } from "@/context/handwriting-context";
 
 const baseUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://oyerindedaniel.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://danieloyerinde.com";
 
 export const metadata: Metadata = {
   title: {

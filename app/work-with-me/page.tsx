@@ -13,8 +13,42 @@ export default function WorkWithMePage() {
   // might change
   if (!isClient) {
     return (
-      <div className="h-dvh w-full flex items-center justify-center">
+      <div className="relative h-dvh w-full flex items-center justify-center">
+        {/* Loader for users */}
         <LoaderIcon size={100} />
+
+        {/* SEO content for crawlers */}
+        <div className="sr-only">
+          <h1>Work With Me — Oyerinde Daniel</h1>
+          <p>
+            I’m always open to chatting about full-time roles or project-based
+            work — especially where I can help design, build, or refine real
+            products.
+          </p>
+          <p>
+            I’m a full-stack developer with 4+ years of experience building
+            production-ready web apps, APIs, and platforms. Worked across
+            fintech and real-estate products — creating clean user interfaces
+            and integrating features like payments, booking flows, user
+            management, and other real-world workflows.
+          </p>
+          <p>
+            Comfortable with TypeScript and modern frontend tooling, I enjoy
+            building features end-to-end while balancing practical engineering
+            with solid architecture.
+          </p>
+          <p>
+            I love working with founders, teams, and early-stage products —
+            building new features, improving systems, choosing the right stack,
+            or taking an idea from prototype to production.
+          </p>
+          <p>
+            Contact:{" "}
+            <a href="mailto:oyerinde.daniel@yahoo.com">
+              oyerinde.daniel@yahoo.com
+            </a>
+          </p>
+        </div>
       </div>
     );
   }

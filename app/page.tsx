@@ -26,11 +26,68 @@ export default function Home() {
   const isMax808 = useMediaQuery("(max-width: 856px)"); // Collapse frame when viewport ≤ content + px-6 padding (808 + 24*2)
 
   // @handwriting-line.tsx cannot run on server
-  // might change because i lose my crawlers
+  // might change
   if (!isClient) {
     return (
-      <div className="h-dvh w-full flex items-center justify-center">
+      <div className="relative h-dvh w-full flex items-center justify-center">
+        {/* Loader for users */}
         <LoaderIcon size={100} />
+
+        {/* SEO content for crawlers */}
+        <div className="sr-only">
+          <h1>Oyerinde Daniel</h1>
+          <p>2*-years-old creative male. Full-Stack TypeScript Engineer.</p>
+          <p>
+            I love engineering systems—building software that works seamlessly
+            and scales effortlessly.
+          </p>
+
+          <h2>Projects</h2>
+          <p>
+            <a
+              href="https://clip-editor-six.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Clip Editor (wip)
+            </a>
+          </p>
+
+          <h2>Contact</h2>
+          <p>
+            Email:{" "}
+            <a href="mailto:oyerinde.daniel@yahoo.com">
+              oyerinde.daniel@yahoo.com
+            </a>
+          </p>
+
+          <h2>Social</h2>
+          <p>
+            <a
+              href="https://github.com/oyerindedaniel"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </a>
+            ,{" "}
+            <a
+              href="https://x.com/fybnow"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Twitter
+            </a>
+            ,{" "}
+            <a
+              href="https://www.linkedin.com/in/daniel-oyerinde-300b53197"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              LinkedIn
+            </a>
+          </p>
+        </div>
       </div>
     );
   }
