@@ -13,7 +13,7 @@ export default function WorkWithMePage() {
   // might change
   if (!isClient) {
     return (
-      <div className="relative h-dvh w-full flex items-center justify-center">
+      <div className="relative h-svh w-full flex items-center justify-center">
         {/* Loader for users */}
         <LoaderIcon size={100} />
 
@@ -27,10 +27,10 @@ export default function WorkWithMePage() {
           </p>
           <p>
             I&apos;m a full-stack developer with 4+ years of experience building
-            production-ready web apps, APIs, and platforms. Worked across
-            fintech and real-estate products — creating clean user interfaces
-            and integrating features like payments, booking flows, user
-            management, and other real-world workflows.
+            production-ready web apps and platforms. Worked across fintech and
+            real-estate products — creating clean user interfaces and
+            integrating features like payments, booking flows, user management,
+            and other real-world workflows.
           </p>
           <p>
             Comfortable with TypeScript and modern frontend tooling, I enjoy
@@ -54,7 +54,7 @@ export default function WorkWithMePage() {
   }
 
   return (
-    <div className="relative max-w-[808px] w-full mx-auto min-h-dvh h-full font-shadows-into-light py-10">
+    <div className="relative max-w-[808px] w-full mx-auto min-h-svh h-full font-shadows-into-light py-10">
       <Button asChild className="mb-6">
         <Link href="/" className="inline-flex items-center gap-2">
           <svg
@@ -91,10 +91,10 @@ export default function WorkWithMePage() {
 
         <HandwritingLine>
           I&apos;m a full-stack developer with 4+ years of experience building
-          production-ready web apps, APIs, and platforms. I&apos;ve worked
-          across fintech and real-estate products — creating clean user
-          interfaces and integrating features like payments, booking flows, user
-          management, and other real-world application workflows.
+          production-ready web apps and platforms. I&apos;ve worked across
+          fintech and real-estate products — creating clean user interfaces and
+          integrating features like payments, booking flows, user management,
+          and other real-world application workflows.
         </HandwritingLine>
 
         <HandwritingLine />

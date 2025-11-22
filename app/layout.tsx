@@ -67,7 +67,7 @@ export default function RootLayout(props: React.PropsWithChildren) {
           geistSans.variable,
           geistMono.variable,
           shadowsIntoLight.variable,
-          "antialiased px-6 min-h-dvh h-full"
+          "antialiased px-6 min-h-svh h-full"
         )}
       >
         <HandwritingProvider>{props.children}</HandwritingProvider>

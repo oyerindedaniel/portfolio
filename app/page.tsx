@@ -28,7 +28,7 @@ export default function Home() {
   // might change
   if (!isClient) {
     return (
-      <div className="relative h-dvh w-full flex items-center justify-center">
+      <div className="relative h-svh w-full flex items-center justify-center">
         {/* Loader for users */}
         <LoaderIcon size={100} />
 
@@ -92,7 +92,7 @@ export default function Home() {
   }
 
   return (
-    <div className="relative max-w-[808px] w-full mx-auto min-h-dvh h-full font-shadows-into-light">
+    <div className="relative max-w-[808px] w-full mx-auto min-h-svh h-full font-shadows-into-light">
       <header className="py-4 flex items-center justify-end gap-8">
         <Button variant="red" size="sm" asChild>
           <Link href="/work-with-me">Work with me</Link>
