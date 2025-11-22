@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 import { cva, VariantProps } from "class-variance-authority";
 
 const buttonVariants = cva(
-  `relative overflow-hidden font-shadows-into-light inline-flex items-center cursor-pointer justify-center gap-2 whitespace-nowrap !text-base cursor-pointer [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0
+  `relative font-shadows-into-light inline-flex items-center justify-center gap-2 whitespace-nowrap !text-base cursor-pointer [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0
   transform transition-transform duration-200
   hover:scale-103 active:scale-95
   before:content-[''] before:absolute before:bottom-0 before:left-0 before:h-[2px] before:w-full
@@ -28,7 +28,7 @@ const buttonVariants = cva(
           "border border-gray-300 bg-white/90 backdrop-blur-sm hover:bg-gray-50 before:hidden after:hidden rounded-3xl focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
       },
       size: {
-        icon: "p-2 size-10 flex items-center justify-center rounded-full",
+        icon: "p-2 size-10 rounded-full",
         sm: "px-4 py-1.5 text-sm",
         md: "px-6 py-2.5",
       },

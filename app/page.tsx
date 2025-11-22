@@ -17,6 +17,7 @@ import { HandwritingLine } from "@/components/handwriting-line";
 import { JUJUTSU_BLUR_DATA_URL } from "@/constants/blur-data";
 import { LoaderIcon } from "@/icons/loader";
 import Link from "next/link";
+import { HitArea } from "@/components/hit-area";
 
 export default function Home() {
   const { copy, copied, pending } = useCopy();
@@ -168,17 +169,18 @@ export default function Home() {
               side={isMax808 ? "left" : "right"}
               highlight
               copy={
-                <Button
-                  type="button"
-                  variant="none"
-                  onClick={(e) => {
-                    copy("oyerinde.daniel@yahoo.com");
-                  }}
-                  disabled={pending}
-                  size="icon"
-                >
-                  {copied ? <CheckIcon /> : <CopyIcon />}
-                </Button>
+                <HitArea variant="all" buffer={2}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      copy("oyerinde.daniel@yahoo.com");
+                    }}
+                    className="p-2 size-10 z-1 flex items-center justify-center rounded-full cursor-pointer [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0"
+                    disabled={pending}
+                  >
+                    {copied ? <CheckIcon /> : <CopyIcon />}
+                  </button>
+                </HitArea>
               }
             >
               Contact me: oyerinde.daniel@yahoo.com
