@@ -18,6 +18,7 @@ import { JUJUTSU_BLUR_DATA_URL } from "@/constants/blur-data";
 import { LoaderIcon } from "@/icons/loader";
 import Link from "next/link";
 import { HitArea } from "@/components/hit-area";
+import { EMAIL } from "@/constants/details";
 
 export default function Home() {
   const { copy, copied, pending } = useCopy();
@@ -55,10 +56,7 @@ export default function Home() {
 
           <h2>Contact</h2>
           <p>
-            Email:{" "}
-            <a href="mailto:oyerinde.daniel@yahoo.com">
-              oyerinde.daniel@yahoo.com
-            </a>
+            Email: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
           </p>
 
           <h2>Social</h2>
@@ -173,7 +171,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => {
-                      copy("oyerinde.daniel@yahoo.com");
+                      copy(EMAIL);
                     }}
                     className="p-2 size-10 z-1 flex items-center justify-center rounded-full cursor-pointer [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0"
                     disabled={pending}
@@ -183,7 +181,7 @@ export default function Home() {
                 </HitArea>
               }
             >
-              Contact me: oyerinde.daniel@yahoo.com
+              {`Contact me: ${EMAIL}`}
             </HandwritingLine>
           </div>
 
@@ -258,7 +256,7 @@ export default function Home() {
             <div className="absolute inset-0 flex items-end p-4 w-fit ml-auto">
               <HandwritingText
                 as="a"
-                href="mailto:oyerinde.daniel@yahoo.com"
+                href={`mailto:${EMAIL}`}
                 target="_blank"
                 text="Email me"
                 className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"

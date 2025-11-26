@@ -69,5 +69,3 @@ export const HandwritingText = <T extends React.ElementType = "p">(
     </Tag>
   );
 };
-
-// export const HandwritingText;

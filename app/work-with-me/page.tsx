@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useClientOnly } from "@/hooks/use-client-only";
 import { LoaderIcon } from "@/icons/loader";
 import Link from "next/link";
+import { EMAIL } from "@/constants/details";
 
 export default function WorkWithMePage() {
   const isClient = useClientOnly(500);
@@ -43,10 +44,7 @@ export default function WorkWithMePage() {
             or taking an idea from prototype to production.
           </p>
           <p>
-            Contact:{" "}
-            <a href="mailto:oyerinde.daniel@yahoo.com">
-              oyerinde.daniel@yahoo.com
-            </a>
+            Contact: <a href={`mailto:${EMAIL}`}>{EMAIL}</a>
           </p>
         </div>
       </div>
@@ -127,10 +125,10 @@ export default function WorkWithMePage() {
 
         <HandwritingLine
           as="a"
-          href="mailto:oyerinde.daniel@yahoo.com"
+          href={`mailto:${EMAIL}`}
           className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
         >
-          Email me: oyerinde.daniel@yahoo.com
+          {`Email me: ${EMAIL}`}
         </HandwritingLine>
       </div>
     </div>
