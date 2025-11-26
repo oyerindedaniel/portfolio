@@ -126,7 +126,7 @@ export default function WorkWithMePage() {
         <HandwritingLine
           as="a"
           href={`mailto:${EMAIL}`}
-          className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
+          className="text-brand-blue hover:text-brand-red transition-colors duration-200"
         >
           {`Email me: ${EMAIL}`}
         </HandwritingLine>

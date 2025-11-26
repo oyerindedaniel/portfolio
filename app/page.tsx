@@ -103,7 +103,7 @@ export default function Home() {
       <main className="mt-[272px]">
         <div className="flex flex-col gap-[15px]">
           <div className="relative">
-            <Framed.Svg className="absolute -top-[141.4px] group/framed max-[calc(808px+48px)]:-top-[12.5875rem] transition-[top] ease-in duration-300">
+            <Framed.Svg className="absolute -top-[141.4px] group/framed max-[calc(808px+48px)]:-top-[201.4px] transition-[top] ease-in duration-300">
               <Framed.Image
                 src={jujutsu}
                 alt="Profile"
@@ -152,15 +152,10 @@ export default function Home() {
             href="https://clip-editor-six.vercel.app"
             target="_blank"
             text="Clip Editor (wip)"
-            className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
+            className="text-brand-blue hover:text-brand-red transition-colors duration-200"
           />
 
-          <div className="relative w-full">
-            <AnimatedNotebookLines />
-            <div className="absolute inset-0 flex items-end p-4">
-              <HandwritingText text="" />
-            </div>
-          </div>
+          <HandwritingLine />
 
           <div className="relative">
             <HandwritingLine
@@ -193,21 +188,21 @@ export default function Home() {
                 href="https://github.com/oyerindedaniel"
                 target="_blank"
                 text="github  "
-                className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
+                className="text-brand-blue hover:text-brand-red transition-colors duration-200"
               />
               <HandwritingText
                 as="a"
                 href="https://x.com/fybnow"
                 target="_blank"
                 text="twitter  "
-                className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
+                className="text-brand-blue hover:text-brand-red transition-colors duration-200"
               />
               <HandwritingText
                 as="a"
                 href="https://www.linkedin.com/in/daniel-oyerinde-300b53197"
                 target="_blank"
                 text="linkendin "
-                className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
+                className="text-brand-blue hover:text-brand-red transition-colors duration-200"
               />
             </div>
           </div>
@@ -220,7 +215,7 @@ export default function Home() {
                 href="https://github.com/oyerindedaniel"
                 target="_blank"
                 text="github  "
-                className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
+                className="text-brand-blue hover:text-brand-red transition-colors duration-200"
               />
             </div>
           </div>
@@ -233,7 +228,7 @@ export default function Home() {
                 href="https://x.com/fybnow"
                 target="_blank"
                 text="twitter  "
-                className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
+                className="text-brand-blue hover:text-brand-red transition-colors duration-200"
               />
             </div>
           </div>
@@ -246,7 +241,7 @@ export default function Home() {
                 href="https://www.linkedin.com/in/daniel-oyerinde-300b53197"
                 target="_blank"
                 text="linkendin"
-                className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
+                className="text-brand-blue hover:text-brand-red transition-colors duration-200"
               />
             </div>
           </div>
@@ -259,7 +254,7 @@ export default function Home() {
                 href={`mailto:${EMAIL}`}
                 target="_blank"
                 text="Email me"
-                className="text-(--brand-blue) hover:text-(--brand-red) transition-transform duration-200 hover:scale-102 active:scale-95"
+                className="text-brand-blue hover:text-brand-red transition-colors duration-200"
               />
             </div>
           </div>

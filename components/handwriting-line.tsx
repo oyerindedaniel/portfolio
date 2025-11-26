@@ -104,7 +104,7 @@ interface HandwritingLineProps {
   text?: string;
 }
 
-function HandwritingLineBase<T extends React.ElementType = "p">({
+export function HandwritingLine<T extends React.ElementType = "p">({
   children = "",
   as,
   offsetY,
@@ -236,5 +236,3 @@ function HandwritingLineBase<T extends React.ElementType = "p">({
     </>
   );
 }
-
-export const HandwritingLine = Object.assign(HandwritingLineBase, {});
