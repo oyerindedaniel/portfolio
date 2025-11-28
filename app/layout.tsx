@@ -62,6 +62,14 @@ export const metadata: Metadata = {
 export default function RootLayout(props: React.PropsWithChildren) {
   return (
     <html lang="en">
+      <head>
+        {process.env.NEXT_PUBLIC_VISITORS_TOKEN && (
+          <script
+            src="https://cdn.visitors.now/v.js"
+            data-token={process.env.NEXT_PUBLIC_VISITORS_TOKEN}
+          />
+        )}
+      </head>
       <body
         className={cn(
           geistSans.variable,
