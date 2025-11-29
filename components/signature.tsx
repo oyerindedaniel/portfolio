@@ -2524,9 +2524,6 @@ export const SignatureControls = {
 
           const handlePointerDown = useCallback(
             (e: React.PointerEvent) => {
-              if (e.pointerType !== "touch") {
-                e.preventDefault();
-              }
               e.stopPropagation();
 
               const track = trackRef.current;
@@ -2535,9 +2532,7 @@ export const SignatureControls = {
               isDraggingRef.current = true;
               setIsDragging(true);
 
-              try {
-                track.setPointerCapture(e.pointerId);
-              } catch (err) {}
+              track.setPointerCapture(e.pointerId);
 
               const progress = getProgressFromPosition(e.clientX);
 
@@ -2551,9 +2546,6 @@ export const SignatureControls = {
             const handlePointerMove = (e: PointerEvent) => {
               if (!isDraggingRef.current) return;
 
-              if (e.pointerType !== "touch") {
-                e.preventDefault();
-              }
               e.stopPropagation();
 
               const progress = getProgressFromPosition(e.clientX);
@@ -2567,19 +2559,15 @@ export const SignatureControls = {
               if (!isDraggingRef.current) return;
 
               const track = trackRef.current;
-              if (track) {
-                try {
-                  track.releasePointerCapture(e.pointerId);
-                } catch (err) {}
-              }
+              if (!track) return;
+
+              track.releasePointerCapture(e.pointerId);
 
               isDraggingRef.current = false;
               setIsDragging(false);
             };
 
-            document.addEventListener("pointermove", handlePointerMove, {
-              passive: false,
-            });
+            document.addEventListener("pointermove", handlePointerMove);
             document.addEventListener("pointerup", handlePointerUp);
             document.addEventListener("pointercancel", handlePointerUp);
 

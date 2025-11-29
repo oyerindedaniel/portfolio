@@ -18,11 +18,9 @@ export function useRAF(
   useEffect(() => {
     if (!enabled) return;
 
-    const unsubscribe = globalRAF.subscribe((time, deltaTime) => {
+    return globalRAF.subscribe((time, deltaTime) => {
       stableCallback(time, deltaTime);
     }, id);
-
-    return unsubscribe;
   }, [enabled, id]);
 }
 

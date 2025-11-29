@@ -4,6 +4,7 @@ import "./globals.css";
 import { geistMono, geistSans, shadowsIntoLight } from "@/lib/fonts";
 import { cn } from "../lib/cn";
 import { HandwritingProvider } from "@/context/handwriting-context";
+import Script from "next/script";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://danieloyerinde.com";
@@ -63,12 +64,14 @@ export default function RootLayout(props: React.PropsWithChildren) {
   return (
     <html lang="en">
       <head>
-        {process.env.NEXT_PUBLIC_VISITORS_TOKEN && (
-          <script
-            src="https://cdn.visitors.now/v.js"
-            data-token={process.env.NEXT_PUBLIC_VISITORS_TOKEN}
-          />
-        )}
+        {process.env.NEXT_PUBLIC_VISITORS_TOKEN &&
+          process.env.NODE_ENV === "production" && (
+            <Script
+              src="https://cdn.visitors.now/v.js"
+              strategy="afterInteractive"
+              data-token={process.env.NEXT_PUBLIC_VISITORS_TOKEN}
+            />
+          )}
       </head>
       <body
         className={cn(

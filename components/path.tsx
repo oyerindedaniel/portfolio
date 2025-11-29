@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   motion,
   AnimatePresence,
@@ -580,14 +580,17 @@ export function Path() {
   const isSmallScreen = useMediaQuery("(max-width: 680px)");
   const prevIsSmallScreen = useRef(isSmallScreen);
 
-  const folderVariants = createFolderVariants(isSmallScreen, skipAnimations);
-  const paperSlideVariants = createPaperSlideVariants(
-    isSmallScreen,
-    skipAnimations
+  const folderVariants = useMemo(
+    () => createFolderVariants(isSmallScreen, skipAnimations),
+    [isSmallScreen, skipAnimations]
   );
-  const paperExpandVariants = createPaperExpandVariants(
-    isSmallScreen,
-    skipAnimations
+  const paperSlideVariants = useMemo(
+    () => createPaperSlideVariants(isSmallScreen, skipAnimations),
+    [isSmallScreen, skipAnimations]
+  );
+  const paperExpandVariants = useMemo(
+    () => createPaperExpandVariants(isSmallScreen, skipAnimations),
+    [isSmallScreen, skipAnimations]
   );
 
   useIsoLayoutEffect(() => {
@@ -599,12 +602,8 @@ export function Path() {
       setShowClickButton(false);
 
       // Set initial states without animation
-      const { transition: _, ...folderExpandedValues } =
-        folderVariants.expanded;
-      const { transition: __, ...paperSlideOpenValues } =
-        paperSlideVariants.open;
-      folderControls.set(folderExpandedValues);
-      paperSlideControls.set(paperSlideOpenValues);
+      folderControls.set(folderVariants.expanded);
+      paperSlideControls.set(paperSlideVariants.open);
       paperExpandControls.set(paperExpandVariants.animateValues);
     }
   }, []);
@@ -633,22 +632,17 @@ export function Path() {
       );
 
       if (isPaperExpanded) {
-        const { transition: _, ...expandedValues } =
-          currentFolderVariants.expanded;
         folderControls.start({
-          ...expandedValues,
+          ...currentFolderVariants.expanded,
           transition: { duration: 0 },
         });
       } else {
-        const { transition: __, ...openValues } = currentFolderVariants.open;
-        const { transition: ___, ...slideOpenValues } =
-          currentPaperSlideVariants.open;
         folderControls.start({
-          ...openValues,
+          ...currentFolderVariants.open,
           transition: { duration: 0 },
         });
         paperSlideControls.start({
-          ...slideOpenValues,
+          ...currentPaperSlideVariants.open,
           transition: { duration: 0 },
         });
       }
@@ -717,9 +711,7 @@ export function Path() {
       });
 
       if (skipAnimations) {
-        const { transition: _, ...folderExpandedValues } =
-          folderVariants.expanded;
-        folderControls.set(folderExpandedValues);
+        folderControls.set(folderVariants.expanded);
         paperExpandControls.set(paperExpandVariants.animateValues);
         return;
       }
