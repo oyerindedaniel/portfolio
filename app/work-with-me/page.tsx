@@ -16,7 +16,7 @@ export default function WorkWithMePage() {
     return (
       <div className="relative h-svh w-full flex items-center justify-center">
         {/* Loader for users */}
-        <LoaderIcon size={100} />
+        <LoaderIcon size={80} />
 
         {/* SEO content for crawlers */}
         <div className="sr-only">
