@@ -214,7 +214,7 @@ export default function Home() {
                 as="a"
                 href="https://github.com/oyerindedaniel"
                 target="_blank"
-                text="github  "
+                text="github"
                 className="text-brand-blue hover:text-brand-red transition-colors duration-200"
               />
             </div>
@@ -227,7 +227,7 @@ export default function Home() {
                 as="a"
                 href="https://x.com/fybnow"
                 target="_blank"
-                text="twitter  "
+                text="twitter"
                 className="text-brand-blue hover:text-brand-red transition-colors duration-200"
               />
             </div>
