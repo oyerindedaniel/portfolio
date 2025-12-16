@@ -13,9 +13,9 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "motion": "^12.23.24",
-    "next": "15.5.3",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "next": "16.0.10",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "signature_pad": "^5.1.1",
     "tailwind-merge": "^3.4.0"
   },
