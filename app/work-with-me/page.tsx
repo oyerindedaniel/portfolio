@@ -28,10 +28,7 @@ export default function WorkWithMePage() {
           </p>
           <p>
             I&apos;m a full-stack developer with 4+ years of experience building
-            production-ready web apps and platforms. Worked across fintech and
-            real-estate products — creating clean user interfaces and
-            integrating features like payments, booking flows, user management,
-            and other real-world workflows.
+            production-ready web apps and platforms.
           </p>
           <p>
             Comfortable with TypeScript and modern frontend tooling, I enjoy
@@ -89,10 +86,7 @@ export default function WorkWithMePage() {
 
         <HandwritingLine>
           I&apos;m a full-stack developer with 4+ years of experience building
-          production-ready web apps and platforms. I&apos;ve worked across
-          fintech and real-estate products — creating clean user interfaces and
-          integrating features like payments, booking flows, user management,
-          and other real-world application workflows.
+          production-ready web apps and platforms.
         </HandwritingLine>
 
         <HandwritingLine />
