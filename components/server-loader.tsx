@@ -1,4 +1,4 @@
-import * as React from "react";
+
 
 export function ServerLoader() {
   const numberOfLines = 4;

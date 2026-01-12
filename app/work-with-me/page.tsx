@@ -3,12 +3,14 @@
 import { HandwritingLine } from "@/components/handwriting-line";
 import { Button } from "@/components/ui/button";
 import { useClientOnly } from "@/hooks/use-client-only";
-import { LoaderIcon } from "@/icons/loader";
 import Link from "next/link";
 import { EMAIL } from "@/constants/details";
+import { ServerLoader } from "@/components/server-loader";
+import { LoaderIcon } from "@/icons/loader";
 
 export default function WorkWithMePage() {
   const isClient = useClientOnly(500);
+
 
   // @handwriting-line.tsx cannot run on server
   // might change

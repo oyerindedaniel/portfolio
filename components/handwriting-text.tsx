@@ -11,9 +11,9 @@ export type HandwritingTextProps<T extends React.ElementType> =
   BaseHandwritingTextProps & {
     as?: T;
   } & Omit<
-      React.ComponentPropsWithoutRef<T>,
-      keyof BaseHandwritingTextProps | "as"
-    >;
+    React.ComponentPropsWithoutRef<T>,
+    keyof BaseHandwritingTextProps | "as"
+  >;
 
 export type PolymorphicRef<T extends React.ElementType> =
   React.ComponentPropsWithRef<T>["ref"];

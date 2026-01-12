@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Framed } from "@/components/framed";
 import { HandwritingText } from "@/components/handwriting-text";
 import { Button } from "@/components/ui/button";
@@ -15,10 +16,10 @@ import { useClientOnly } from "@/hooks/use-client-only";
 import { cn } from "@/lib/cn";
 import { HandwritingLine } from "@/components/handwriting-line";
 import { JUJUTSU_BLUR_DATA_URL } from "@/constants/blur-data";
-import { LoaderIcon } from "@/icons/loader";
 import Link from "next/link";
 import { HitArea } from "@/components/hit-area";
 import { EMAIL } from "@/constants/details";
+import { LoaderIcon } from "@/icons/loader";
 
 export default function Home() {
   const { copy, copied, pending } = useCopy();
@@ -44,6 +45,15 @@ export default function Home() {
           </p>
 
           <h2>Projects</h2>
+          <p>
+            <a
+              href="https://caliper.danieloyerinde.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Caliper
+            </a>
+          </p>
           <p>
             <a
               href="https://clip-editor-six.vercel.app"
@@ -97,7 +107,9 @@ export default function Home() {
           <Link href="/work-with-me">Work with me</Link>
         </Button>
 
-        <Path />
+        <Suspense fallback={null}>
+          <Path />
+        </Suspense>
       </header>
 
       <main className="mt-[272px]">
@@ -147,6 +159,13 @@ export default function Home() {
             </div>
           </div>
 
+          <HandwritingLine
+            as="a"
+            href="https://caliper.danieloyerinde.com"
+            target="_blank"
+            text="Caliper"
+            className="text-brand-blue hover:text-brand-red transition-colors duration-200"
+          />
           <HandwritingLine
             as="a"
             href="https://clip-editor-six.vercel.app"
