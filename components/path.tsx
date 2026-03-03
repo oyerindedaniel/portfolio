@@ -163,7 +163,7 @@ const createPaperExpandVariants = (
     animateValues: final,
     exit: isSmallScreen
       ? {
-        y: "40vh",
+        scale: 0.95,
         opacity: 0,
         transition: TRANSITIONS.exit,
       }
@@ -622,16 +622,21 @@ export function Path() {
       params.delete("signature");
       router.replace(`?${params.toString()}`, { scroll: false });
 
+      if (skipAnimations) {
+        setIsPaperExpanded(false);
+        setShowClickButton(false);
+        setSkipAnimations(false);
+        setIsOpen(false);
+        return;
+      }
+
+      await paperExpandControls.start(paperExpandVariants.exit);
+
       flushSync(() => {
         setIsPaperExpanded(false);
         setShowClickButton(false);
         setSkipAnimations(false);
       });
-
-      if (skipAnimations) {
-        setIsOpen(false);
-        return;
-      }
 
       await Promise.all([
         paperSlideControls.start(paperSlideVariants.closed),
@@ -863,7 +868,6 @@ export function Path() {
                   className="absolute pointer-events-none inset-0 flex items-center justify-center z-50 will-change-[transform,opacity]"
                   initial={paperExpandVariants.initial}
                   animate={skipAnimations ? {} : paperExpandControls}
-                  exit={paperExpandVariants.exit}
                 >
                   <ExpandedPaper onClose={handleToggle} />
                 </motion.div>

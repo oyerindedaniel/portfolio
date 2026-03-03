@@ -493,7 +493,7 @@ function useSignatureContext(): SignatureContextValue {
        =========================== */
 
 /**
- * SignatureRoot: Orchestrates animation timeline and manages global state
+ * SignatureRoot
  */
 export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
   const {
