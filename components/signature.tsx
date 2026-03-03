@@ -499,7 +499,7 @@ export const SignatureRoot: React.FC<SignatureRootProps> = (props) => {
   const {
     children,
     duration: durationProp = 1500,
-    speed: speedProp = 1,
+    speed: speedProp = 1.25,
     easing: easingProp,
     jitter: jitterProp = null,
     pressure: pressureProp = false,

@@ -45,7 +45,6 @@ const getPaperConstraints = (isSmallScreen: boolean) => {
   };
 };
 
-const springEasing = cubicBezier(0.34, 1.56, 0.64, 1);
 const smoothEasing = cubicBezier(0.4, 0, 0.2, 1);
 const exitEasing = cubicBezier(0.32, 0, 0.67, 0);
 
@@ -53,10 +52,10 @@ const TRANSITIONS = {
   smooth: { duration: 0.25, ease: smoothEasing },
   smoothLong: { duration: 0.35, ease: smoothEasing },
   exit: { duration: 0.3, ease: exitEasing },
-  spring: { duration: 0.7, ease: springEasing },
-  springMedium: { duration: 0.6, ease: springEasing },
-  springLong: { duration: 0.8, ease: springEasing },
-  springShort: { duration: 0.5, ease: springEasing },
+  spring: { type: "spring", stiffness: 200, damping: 28, mass: 1 },
+  springMedium: { type: "spring", stiffness: 220, damping: 26, mass: 1 },
+  springLong: { type: "spring", stiffness: 150, damping: 24, mass: 1 },
+  springShort: { type: "spring", stiffness: 250, damping: 22, mass: 1 },
   fade: { duration: 0.2 },
 } as const;
 
@@ -145,7 +144,7 @@ const createPaperExpandVariants = (
         ? { y: 0, opacity: 1 }
         : final
       : isSmallScreen
-        ? { y: "40vh", opacity: 1, scale: 1 }
+        ? { y: 350, opacity: 0.5, scale: 0.95 }
         : desktopInitial,
     animate: skipAnimations
       ? {}
@@ -153,6 +152,8 @@ const createPaperExpandVariants = (
         ? {
           y: 0,
           opacity: 1,
+          scale: 1,
+          z: 0,
           transition: TRANSITIONS.springMedium,
         }
         : {
@@ -251,7 +252,9 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     });
 
     return () => {
-      pad.off();
+      if (signaturePadRef.current) {
+        signaturePadRef.current.off();
+      }
       if (toastTimeoutRef.current) {
         clearTimeout(toastTimeoutRef.current);
       }
@@ -849,6 +852,7 @@ export function Path() {
                       </filter>
                     </defs>
                   </svg>
+
                 </motion.div>
               )}
 
@@ -856,32 +860,40 @@ export function Path() {
                 <motion.div
                   key="paper"
                   layoutId="paper-document"
-                  className="absolute pointer-events-none inset-0 flex items-center justify-center z-50"
+                  className="absolute pointer-events-none inset-0 flex items-center justify-center z-50 will-change-[transform,opacity]"
                   initial={paperExpandVariants.initial}
                   animate={skipAnimations ? {} : paperExpandControls}
                   exit={paperExpandVariants.exit}
-                  transition={TRANSITIONS.spring}
                 >
                   <ExpandedPaper onClose={handleToggle} />
                 </motion.div>
               )}
             </AnimatePresence>
-
-            {showClickButton && (
-              <Button
-                variant="red"
-                onClick={handlePaperClick}
-                className="absolute left-1/2 -translate-x-1/2 pointer-events-auto px-8 py-3 font-semibold shadow-lg z-10"
-                aria-label="Click to view"
-                style={{
-                  bottom: isSmallScreen
-                    ? `calc(${FOLDER_HEIGHT * 0.2}px + 60px - 100px)`
-                    : `calc(${FOLDER_HEIGHT * 0.5}px + 80px - 125px)`,
-                }}
-              >
-                Click to View
-              </Button>
-            )}
+            <AnimatePresence>
+              {showClickButton && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                  transition={TRANSITIONS.smooth}
+                  className="absolute left-1/2 -translate-x-1/2 z-10"
+                  style={{
+                    bottom: isSmallScreen
+                      ? `calc(${FOLDER_HEIGHT * 0.2}px + 60px - 100px)`
+                      : `calc(${FOLDER_HEIGHT * 0.5}px + 80px - 125px)`,
+                  }}
+                >
+                  <Button
+                    variant="red"
+                    onClick={handlePaperClick}
+                    className="pointer-events-auto px-8 py-3 font-semibold shadow-lg"
+                    aria-label="Click to view"
+                  >
+                    Click to View
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </FocusTrap>
