@@ -33,12 +33,12 @@ export default function Home() {
     return (
       <div className="relative h-svh w-full flex items-center justify-center">
         {/* Loader for users */}
-        <LoaderIcon size={80} />
+        <LoaderIcon size={50} />
 
         {/* SEO content for crawlers */}
         <div className="sr-only">
           <h1>Oyerinde Daniel</h1>
-          <p>2*-years-old creative male. Full-Stack TypeScript Engineer.</p>
+          <p>2*-years-old creative male. Software Engineer.</p>
           <p>
             I love engineering systems—building software that works seamlessly
             and scales effortlessly.
@@ -103,9 +103,9 @@ export default function Home() {
   return (
     <div className="relative max-w-[808px] w-full mx-auto min-h-svh h-full font-shadows-into-light">
       <header className="py-4 flex items-center justify-end gap-8">
-        <Button variant="red" size="sm" asChild>
+        {/* <Button variant="red" size="sm" asChild>
           <Link href="/work-with-me">Work with me</Link>
-        </Button>
+        </Button> */}
 
         <Suspense fallback={null}>
           <Path />
@@ -143,7 +143,7 @@ export default function Home() {
           </div>
 
           <HandwritingLine>2*-years-old creative male.</HandwritingLine>
-          <HandwritingLine>Full-Stack TypeScript Engineer.</HandwritingLine>
+          <HandwritingLine>Software Engineer.</HandwritingLine>
           {/* <HandwritingLine>Currently learning Several things.</HandwritingLine> */}
           <HandwritingLine>I love engineering systems-</HandwritingLine>
           <HandwritingLine>

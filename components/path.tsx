@@ -6,10 +6,6 @@ import {
   AnimatePresence,
   useAnimationControls,
   cubicBezier,
-  useMotionValue,
-  useMotionTemplate,
-  useTransform,
-  animate,
 } from "motion/react";
 import { flushSync } from "react-dom";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -20,35 +16,48 @@ import {
   SignatureControls,
   SignaturePath,
   SignatureRoot,
+  useSignature,
 } from "./signature";
 import SignaturePad from "signature_pad";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { FocusTrap } from "./focus-trap";
 import { useIsoLayoutEffect } from "@/hooks/use-Isomorphic-layout-effect";
 
-interface ExpandedPaperProps {
-  onClose: () => void;
-}
-
 const PAPER_WIDTH = 700;
 const PAPER_HEIGHT = 550;
 const FOLDER_WIDTH = 838;
 const FOLDER_HEIGHT = 636;
 
+const PAPER_WIDTH_DESKTOP = 700;
+const PAPER_WIDTH_MOBILE = 778;
+
 const PAD_WIDTH = 580;
 const PAD_HEIGHT = 200;
 
+const getPaperConstraints = (isSmallScreen: boolean) => {
+  const paperSvgWidth = isSmallScreen ? PAPER_WIDTH_MOBILE : PAPER_WIDTH_DESKTOP;
+  const fillPercentage = (paperSvgWidth / FOLDER_WIDTH) * 100;
+  const aspectRatio = isSmallScreen ? 3 / 3.8 : PAPER_WIDTH / PAPER_HEIGHT;
+
+  return {
+    fillPercentage,
+    aspectRatio,
+  };
+};
+
 const springEasing = cubicBezier(0.34, 1.56, 0.64, 1);
-const smoothEasing = "easeInOut";
+const smoothEasing = cubicBezier(0.4, 0, 0.2, 1);
+const exitEasing = cubicBezier(0.32, 0, 0.67, 0);
 
 const TRANSITIONS = {
-  smooth: { duration: 0.3, ease: smoothEasing },
-  smoothLong: { duration: 0.5, ease: smoothEasing },
+  smooth: { duration: 0.25, ease: smoothEasing },
+  smoothLong: { duration: 0.35, ease: smoothEasing },
+  exit: { duration: 0.3, ease: exitEasing },
   spring: { duration: 0.7, ease: springEasing },
   springMedium: { duration: 0.6, ease: springEasing },
   springLong: { duration: 0.8, ease: springEasing },
   springShort: { duration: 0.5, ease: springEasing },
-  fade: { duration: 0.3 },
+  fade: { duration: 0.2 },
 } as const;
 
 const createFolderVariants = (
@@ -99,7 +108,7 @@ const createFolderVariants = (
     exit: {
       ...closed,
       opacity: 0,
-      transition: TRANSITIONS.smoothLong,
+      transition: TRANSITIONS.exit,
     },
   };
 };
@@ -127,7 +136,6 @@ const createPaperExpandVariants = (
   isSmallScreen: boolean,
   skipAnimations: boolean
 ) => {
-  const mobileInitial = { y: "100%", opacity: 1 };
   const desktopInitial = { scale: 0.8, z: -1000, opacity: 0 };
   const final = { scale: 1, z: 0, opacity: 1 };
 
@@ -137,31 +145,31 @@ const createPaperExpandVariants = (
         ? { y: 0, opacity: 1 }
         : final
       : isSmallScreen
-      ? mobileInitial
-      : desktopInitial,
+        ? { y: "40vh", opacity: 1, scale: 1 }
+        : desktopInitial,
     animate: skipAnimations
       ? {}
       : isSmallScreen
-      ? {
+        ? {
           y: 0,
           opacity: 1,
           transition: TRANSITIONS.springMedium,
         }
-      : {
+        : {
           ...final,
           transition: TRANSITIONS.springShort,
         },
-    animateValues: final, // Values only, for use with set()
+    animateValues: final,
     exit: isSmallScreen
       ? {
-          y: "100%",
-          opacity: 1,
-          transition: TRANSITIONS.smoothLong,
-        }
+        y: "40vh",
+        opacity: 0,
+        transition: TRANSITIONS.exit,
+      }
       : {
-          ...desktopInitial,
-          transition: TRANSITIONS.smoothLong,
-        },
+        ...desktopInitial,
+        transition: TRANSITIONS.exit,
+      },
   };
 };
 
@@ -172,10 +180,21 @@ const toastVariants = {
 };
 
 const controlsVariants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
+  initial: { opacity: 0, y: 15, scale: 0.98, filter: "blur(4px)" },
+  animate: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" },
+  exit: { opacity: 0, y: 10, scale: 0.98, filter: "blur(4px)" },
 };
+
+function AutoPlay({ active }: { active: boolean }) {
+  const controller = useSignature();
+  useEffect(() => {
+    if (active) {
+      controller.reset();
+      controller.play();
+    }
+  }, [active]);
+  return null;
+}
 
 interface ExpandedPaperProps {
   onClose: () => void;
@@ -195,65 +214,6 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
 
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const clipPercentage = useMotionValue(30);
-  const clipPath = useMotionTemplate`inset(0 0 ${clipPercentage}% 0 round 0.5rem)`;
-
-  const borderHeight = useTransform(
-    clipPercentage,
-    (value) => `${100 - value}%`
-  );
-
-  useIsoLayoutEffect(() => {
-    if (!contentRef.current || showAnimation) return;
-
-    let rafId: number | null = null;
-
-    const calculateClipPercentage = () => {
-      if (!contentRef.current || !canvasRef.current) return;
-
-      const paperHeight = contentRef.current.offsetHeight;
-      const canvasHeight = canvasRef.current.offsetHeight;
-
-      const titleHeight = 28;
-      const buttonsHeight = 40;
-      const gaps = 24 * 3;
-      const padding = 48;
-
-      const nonAnimatedHeight =
-        titleHeight + canvasHeight + buttonsHeight + gaps + padding;
-
-      const clipAmount =
-        ((paperHeight - nonAnimatedHeight) / paperHeight) * 100;
-
-      const targetValue = showAnimation
-        ? 0
-        : Math.max(20, Math.min(clipAmount, 45));
-
-      animate(clipPercentage, targetValue, {
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-      });
-    };
-
-    calculateClipPercentage();
-
-    const observer = new ResizeObserver(() => {
-      if (rafId) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        rafId = null;
-        calculateClipPercentage();
-      });
-    });
-
-    observer.observe(contentRef.current);
-
-    return () => {
-      observer.disconnect();
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-  }, [showAnimation]);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -265,9 +225,6 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
       maxWidth: 3.5,
     });
 
-    // Patch: Override _createPoint
-    // Reason: Fix misalignment when canvas CSS size differs from its intrinsic pixel size.
-    // Need Signature Canvas === Signature Pad Canvas.
     const padAny = pad as any;
     const originalCreatePoint = padAny._createPoint.bind(pad);
 
@@ -345,12 +302,6 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     const combinedPath = paths.join(" ");
     setSignaturePath(combinedPath);
     setShowAnimation(true);
-
-    animate(clipPercentage, 0, {
-      type: "spring",
-      stiffness: 200,
-      damping: 30,
-    });
   };
 
   const handleDrawAgain = () => {
@@ -358,15 +309,14 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
     handleClear();
   };
 
-  const aspectRatio = isSmallScreen ? 3 / 3.8 : PAPER_WIDTH / PAPER_HEIGHT;
+  const { fillPercentage, aspectRatio } = useMemo(
+    () => getPaperConstraints(isSmallScreen),
+    [isSmallScreen]
+  );
 
-  const widthLimit = `min(90vw, ${(90 * aspectRatio).toFixed(4)}vh)`;
-  const heightLimit = `min(90vh, ${(90 / aspectRatio).toFixed(4)}vw)`;
+  const widthLimit = `min(${fillPercentage}vw, ${(fillPercentage * aspectRatio).toFixed(4)}vh)`;
   const width = `min(${widthLimit}, ${PAPER_WIDTH}px)`;
-  const height = `min(${heightLimit}, ${PAPER_HEIGHT}px)`;
-
   const maxWidth = `${PAPER_WIDTH}px`;
-  const maxHeight = `${PAPER_HEIGHT}px`;
 
   return (
     <FocusTrap>
@@ -391,155 +341,168 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
           )}
         </AnimatePresence>
 
-        <div className="group relative rounded-lg overflow-hidden">
+        <div className="group relative rounded-lg">
           <motion.div
-            className="absolute inset-0 rounded-lg bg-transparent overflow-hidden z-20 pointer-events-none border-2 border-gray-300"
-            style={{ height: borderHeight }}
-          />
-          <motion.div
+            layout
             ref={contentRef}
-            className="relative pointer-events-auto bg-white flex flex-col gap-6 p-6 z-4 rounded-lg overflow-hidden"
+            className="relative pointer-events-auto bg-white flex flex-col z-4 rounded-lg overflow-hidden border-2 border-gray-300"
             style={{
               width,
-              height,
               maxWidth,
-              maxHeight,
-              clipPath,
             }}
           >
-            <div className="relative z-10 text-center text-foreground-muted text-xl font-medium">
+            <div className="relative z-10 text-center text-foreground-muted text-xl font-medium p-6 pb-2">
               Draw your signature
             </div>
 
-            <div className="relative z-10 w-full bg-slate-50 border border-slate-200 border-dashed rounded">
-              <canvas
-                ref={canvasRef}
-                width={PAD_WIDTH}
-                height={PAD_HEIGHT}
-                className={cn(
-                  "cursor-crosshair w-full touch-none",
-                  showAnimation ? "hidden" : "block"
-                )}
-                style={{ aspectRatio: PAD_WIDTH / PAD_HEIGHT }}
-              />
-              <SignatureRoot
-                key={signaturePath}
-                duration={2000}
-                autoPlay
-                loop={false}
-              >
-                {showAnimation && signaturePath && (
-                  <div className="w-full h-full">
-                    <SignatureCanvas
-                      viewBox={`0 0 ${PAD_WIDTH} ${PAD_HEIGHT}`}
-                      preserveAspectRatio="xMidYMid meet"
-                      className="w-full"
-                      style={{ aspectRatio: PAD_WIDTH / PAD_HEIGHT }}
-                    >
-                      <SignaturePath
-                        d={signaturePath}
-                        strokeWidth={3.5}
-                        color="oklch(0 0 0)"
-                      />
-                    </SignatureCanvas>
-                  </div>
-                )}
-
-                <div className="absolute z-10 w-full space-y-4 mt-6">
-                  <AnimatePresence mode="wait">
-                    {showAnimation ? (
-                      <motion.div
-                        key="controls"
-                        variants={controlsVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        transition={TRANSITIONS.fade}
-                        className="w-full space-y-4"
-                      >
-                        <SignatureControls.Root className="w-full">
-                          <SignatureControls.Seek.Root>
-                            <SignatureControls.Seek.Track>
-                              <SignatureControls.Seek.Progress />
-                              <SignatureControls.Seek.Thumb />
-                            </SignatureControls.Seek.Track>
-                            <SignatureControls.Seek.TimeDisplay className="text-foreground-muted text-base" />
-                          </SignatureControls.Seek.Root>
-
-                          <SignatureControls.Speed className="text-foreground-muted mt-2" />
-
-                          <div className="flex flex-col items-center gap-4 mt-4">
-                            <div className="flex justify-center w-full gap-4">
-                              <SignatureControls.PlayPause
-                                variant="solid"
-                                size="sm"
-                              />
-                              <Button
-                                onClick={handleDrawAgain}
-                                variant="outline"
-                                size="sm"
-                              >
-                                Draw Again
-                              </Button>
-                            </div>
-
-                            <div className="flex justify-center w-full gap-4">
-                              <SignatureControls.Download.Button
-                                className="text-brand-blue border-brand-blue hover:bg-white"
-                                variant="brand"
-                                format="png"
-                                size="sm"
-                              />
-
-                              <SignatureControls.Download.Button
-                                className="text-brand-blue border-brand-blue"
-                                variant="brand"
-                                format="svg"
-                                size="sm"
-                                downloadOptions={{ animated: true }}
-                              />
-                            </div>
-                          </div>
-                        </SignatureControls.Root>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="buttons"
-                        variants={controlsVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        transition={TRANSITIONS.fade}
-                        className="flex justify-center gap-4"
-                      >
-                        <Button
-                          onClick={handleClear}
-                          variant="outline"
-                          size="sm"
-                        >
-                          Clear
-                        </Button>
-                        <Button
-                          onClick={handleAnimate}
-                          variant="solid"
-                          size="sm"
-                        >
-                          Animate
-                        </Button>
-                      </motion.div>
+            <SignatureRoot
+              duration={2000}
+              autoPlay
+              loop={false}
+            >
+              <AutoPlay active={showAnimation} />
+              <motion.div layout className="flex flex-col px-6 pb-6 gap-6">
+                <div
+                  className="relative w-full bg-slate-50 border border-slate-200 border-dashed rounded overflow-hidden"
+                  style={{ aspectRatio: PAD_WIDTH / PAD_HEIGHT }}
+                >
+                  <canvas
+                    ref={canvasRef}
+                    width={PAD_WIDTH}
+                    height={PAD_HEIGHT}
+                    className={cn(
+                      "cursor-crosshair w-full h-full touch-none absolute inset-0",
+                      showAnimation ? "hidden" : "block"
                     )}
-                  </AnimatePresence>
+                  />
+                  {showAnimation && signaturePath && (
+                    <div className="absolute inset-0" key={signaturePath}>
+                      <SignatureCanvas
+                        viewBox={`0 0 ${PAD_WIDTH} ${PAD_HEIGHT}`}
+                        preserveAspectRatio="xMidYMid meet"
+                        className="w-full h-full"
+                      >
+                        <SignaturePath
+                          d={signaturePath}
+                          strokeWidth={3.5}
+                          color="oklch(0 0 0)"
+                        />
+                      </SignatureCanvas>
+                    </div>
+                  )}
                 </div>
-              </SignatureRoot>
-            </div>
+
+                <AnimatePresence mode="popLayout">
+                  {showAnimation ? (
+                    <motion.div
+                      layout
+                      key={signaturePath + "-controls"}
+                      variants={controlsVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={TRANSITIONS.fade}
+                      className="w-full space-y-6"
+                    >
+                      <div className="space-y-4">
+                        <SignatureControls.Seek.Root>
+                          <div className="flex items-center gap-4">
+                            <div className="flex-1">
+                              <SignatureControls.Seek.Track>
+                                <SignatureControls.Seek.Progress />
+                                <SignatureControls.Seek.Thumb />
+                              </SignatureControls.Seek.Track>
+                            </div>
+                            <SignatureControls.Seek.TimeDisplay className="min-w-[70px] tabular-nums font-sans text-xs text-slate-400" />
+                          </div>
+                        </SignatureControls.Seek.Root>
+
+                        <SignatureControls.Speed className="px-0.5" />
+                      </div>
+
+                      <div className="flex flex-col gap-5 pt-5 border-t border-slate-100">
+                        <div className="flex items-center justify-between gap-4">
+                          <SignatureControls.PlayPause />
+                          <Button
+                            onClick={handleDrawAgain}
+                            variant="outline"
+                            size="lg"
+                            font="bold"
+                            className="bg-white text-slate-500 border-slate-200 hover:text-brand-blue hover:border-brand-blue/30 uppercase"
+                          >
+                            Draw Again
+                          </Button>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <SignatureControls.Download.Button
+                            variant="subtle"
+                            format="png"
+                            size="sm"
+                            font="bold"
+                            className="flex-1 h-10 rounded-lg"
+                          >
+                            <div className="flex items-center justify-center gap-1.5 font-bold uppercase tracking-[0.02em] text-[10px] whitespace-nowrap px-1">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 group-hover:opacity-100 transition-opacity">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                              </svg>
+                              PNG
+                            </div>
+                          </SignatureControls.Download.Button>
+
+                          <SignatureControls.Download.Button
+                            variant="subtle"
+                            format="svg"
+                            size="sm"
+                            font="bold"
+                            downloadOptions={{ animated: true }}
+                            className="flex-1 h-10 rounded-lg hover:border-brand-red/30 hover:text-brand-red hover:bg-brand-red/[0.02]"
+                          >
+                            <div className="flex items-center justify-center gap-1.5 font-bold uppercase tracking-[0.02em] text-[10px] whitespace-nowrap px-1">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 group-hover:opacity-100 transition-opacity">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="m11 8-4 4 4 4" />
+                                <path d="M7 12h10" />
+                              </svg>
+                              SVG
+                            </div>
+                          </SignatureControls.Download.Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      layout
+                      key="buttons"
+                      variants={controlsVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={TRANSITIONS.fade}
+                      className="flex justify-center gap-4"
+                    >
+                      <Button onClick={handleClear} variant="outline" size="sm">
+                        Clear
+                      </Button>
+                      <Button onClick={handleAnimate} variant="solid" size="sm">
+                        Animate
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </SignatureRoot>
 
             <Button
               onClick={() => {
                 setShowToast(false);
                 onClose();
               }}
-              variant="solid"
+              variant="ghost"
               size="icon"
+              font="sans"
               className="absolute top-4 right-4 z-20"
               aria-label="Close"
             >
@@ -561,7 +524,7 @@ const ExpandedPaper: React.FC<ExpandedPaperProps> = ({ onClose }) => {
           </motion.div>
         </div>
       </div>
-    </FocusTrap>
+    </FocusTrap >
   );
 };
 
@@ -601,7 +564,6 @@ export function Path() {
       setIsPaperExpanded(true);
       setShowClickButton(false);
 
-      // Set initial states without animation
       folderControls.set(folderVariants.expanded);
       paperSlideControls.set(paperSlideVariants.open);
       paperExpandControls.set(paperExpandVariants.animateValues);
@@ -668,8 +630,10 @@ export function Path() {
         return;
       }
 
-      await paperSlideControls.start(paperSlideVariants.closed);
-      await folderControls.start(folderVariants.closed);
+      await Promise.all([
+        paperSlideControls.start(paperSlideVariants.closed),
+        folderControls.start(folderVariants.closed),
+      ]);
       setIsOpen(false);
     } else {
       const params = new URLSearchParams(searchParams.toString());
@@ -717,15 +681,12 @@ export function Path() {
       }
 
       if (isSmallScreen) {
-        // Mobile: folder stays in place, paper slides up from it
-        await new Promise((resolve) => setTimeout(resolve, 100));
         await paperExpandControls.start(paperExpandVariants.animate);
       } else {
-        // Desktop: folder moves back in 3D space, paper zooms forward
         const folderAnimation = folderControls.start(folderVariants.expanded);
         setTimeout(() => {
           paperExpandControls.start(paperExpandVariants.animate);
-        }, 400);
+        }, 300);
         await folderAnimation;
       }
     }
@@ -797,38 +758,48 @@ export function Path() {
                       fill="var(--brand-blue)"
                     />
 
-                    <motion.g
-                      animate={skipAnimations ? {} : paperSlideControls}
-                      initial={
-                        skipAnimations
-                          ? paperSlideVariants.open
-                          : paperSlideVariants.closed
-                      }
-                    >
-                      <rect
-                        x="69"
-                        y="150"
-                        width="700"
-                        height="550"
-                        rx="8"
-                        fill="white"
-                        stroke="#e5e7eb"
-                        strokeWidth="2"
-                        className="[filter:drop-shadow(0_4px_12px_rgba(0,0,0,0.15))]"
-                      />
-
-                      {Array.from({ length: 12 }).map((_, i) => (
-                        <line
-                          key={i}
-                          x1="129"
-                          y1={230 + i * 35}
-                          x2="709"
-                          y2={230 + i * 35}
-                          stroke="var(--brand-blue)"
-                          strokeWidth="1.5"
+                    {!isPaperExpanded && (
+                      <motion.g
+                        key="svg-paper"
+                        layoutId="paper-document"
+                        animate={skipAnimations ? {} : paperSlideControls}
+                        initial={
+                          skipAnimations
+                            ? paperSlideVariants.open
+                            : paperSlideVariants.closed
+                        }
+                        transition={TRANSITIONS.spring}
+                      >
+                        <rect
+                          x={(FOLDER_WIDTH - (isSmallScreen ? PAPER_WIDTH_MOBILE : PAPER_WIDTH_DESKTOP)) / 2}
+                          y="150"
+                          width={isSmallScreen ? PAPER_WIDTH_MOBILE : PAPER_WIDTH_DESKTOP}
+                          height="550"
+                          rx="8"
+                          fill="white"
+                          stroke="#e5e7eb"
+                          strokeWidth="2"
+                          className="[filter:drop-shadow(0_4px_12px_rgba(0,0,0,0.15))]"
                         />
-                      ))}
-                    </motion.g>
+
+                        {Array.from({ length: 12 }).map((_, i) => {
+                          const width = isSmallScreen ? PAPER_WIDTH_MOBILE : PAPER_WIDTH_DESKTOP;
+                          const x = (FOLDER_WIDTH - width) / 2;
+                          const linePadding = isSmallScreen ? 60 : 60; // Relative to paper edge
+                          return (
+                            <line
+                              key={i}
+                              x1={x + linePadding}
+                              y1={230 + i * 35}
+                              x2={x + width - linePadding}
+                              y2={230 + i * 35}
+                              stroke="var(--brand-blue)"
+                              strokeWidth="1.5"
+                            />
+                          );
+                        })}
+                      </motion.g>
+                    )}
 
                     <g filter="url(#filter0_d_120_34)">
                       <path
@@ -884,10 +855,12 @@ export function Path() {
               {isPaperExpanded && (
                 <motion.div
                   key="paper"
-                  className="absolute pointer-events-none inset-0 flex items-center justify-center"
+                  layoutId="paper-document"
+                  className="absolute pointer-events-none inset-0 flex items-center justify-center z-50"
                   initial={paperExpandVariants.initial}
                   animate={skipAnimations ? {} : paperExpandControls}
                   exit={paperExpandVariants.exit}
+                  transition={TRANSITIONS.spring}
                 >
                   <ExpandedPaper onClose={handleToggle} />
                 </motion.div>

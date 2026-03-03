@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 import { cva, VariantProps } from "class-variance-authority";
 
 const buttonVariants = cva(
-  `relative font-shadows-into-light inline-flex items-center justify-center gap-2 whitespace-nowrap !text-base cursor-pointer [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0
+  `relative inline-flex items-center justify-center gap-2 whitespace-nowrap !text-base cursor-pointer [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0
   transform transition-transform duration-200
   hover:scale-103 active:scale-95
   before:content-[''] before:absolute before:bottom-0 before:left-0 before:h-[2px] before:w-full
@@ -20,20 +20,32 @@ const buttonVariants = cva(
       variant: {
         none: "before:hidden after:hidden",
         solid:
-          "bg-brand-blue text-white hover:bg-primary before:hidden rounded-3xl after:hidden focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+          "bg-brand-blue text-white hover:bg-brand-blue/90 before:hidden rounded-3xl after:hidden focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 focus-visible:ring-offset-white",
         brand:
-          "before:hidden after:hidden text-brand-blue border border-brand-blue rounded-3xl hover:bg-white focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+          "before:hidden after:hidden text-brand-blue border border-brand-blue rounded-3xl hover:bg-brand-blue/5 focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 focus-visible:ring-offset-white",
         red: "before:hidden after:hidden bg-brand-red text-white rounded-3xl hover:bg-brand-red/80 focus-visible:ring-2 focus-visible:ring-brand-red focus-visible:ring-offset-2 focus-visible:ring-offset-white",
         outline:
           "border border-gray-300 bg-white/90 backdrop-blur-sm hover:bg-gray-50 before:hidden after:hidden rounded-3xl focus-visible:ring-2 focus-visible:ring-gray-300 focus-visible:ring-offset-2 focus-visible:ring-offset-white",
+        subtle:
+          "before:hidden after:hidden bg-slate-50 border border-slate-200 text-slate-500 hover:border-brand-blue/30 hover:text-brand-blue hover:bg-brand-blue/[0.02] shadow-none",
+        ghost:
+          "before:hidden after:hidden hover:bg-slate-100 text-slate-500 hover:text-slate-900 border-none",
+      },
+      font: {
+        shadows: "font-shadows-into-light",
+        sans: "font-sans",
+        bold: "font-bold uppercase tracking-widest text-[9px]",
       },
       size: {
         icon: "p-2 size-10 rounded-full",
         sm: "px-4 py-1.5 text-sm",
         md: "px-6 py-2.5",
+        lg: "px-8 py-3",
       },
     },
-    defaultVariants: {},
+    defaultVariants: {
+      font: "shadows",
+    },
   }
 );
 

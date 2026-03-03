@@ -1,46 +1,50 @@
-import * as React from "react";
+"use client";
+
+import { motion } from "motion/react";
 import { cn } from "@/lib/cn";
 
-interface LoaderIconProps extends React.SVGProps<SVGSVGElement> {
+interface LoaderIconProps {
   size?: number;
+  className?: string;
 }
 
-export const LoaderIcon: React.FC<LoaderIconProps> = ({
-  className = "",
-  size = 24,
-  ...props
-}) => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={cn("animate-spin", className)}
-      {...props}
-    >
-      <defs>
-        <linearGradient id="loaderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--brand-blue, #3b82f6)" />
-          <stop offset="100%" stopColor="var(--brand-red, #ef4444)" />
-        </linearGradient>
-      </defs>
+export function LoaderIcon({ size = 44, className }: LoaderIconProps) {
+  const gridSize = 3;
+  const cubes = Array.from({ length: gridSize * gridSize });
 
-      <g stroke="url(#loaderGradient)">
-        <path d="M12 6l0 -3" />
-        <path d="M16.25 7.75l2.15 -2.15" />
-        <path d="M18 12l3 0" />
-        <path d="M16.25 16.25l2.15 2.15" />
-        <path d="M12 18l0 3" />
-        <path d="M7.75 16.25l-2.15 2.15" />
-        <path d="M6 12l-3 0" />
-        <path d="M7.75 7.75l-2.15 -2.15" />
-      </g>
-    </svg>
+  return (
+    <div
+      className={cn("flex items-center justify-center select-none pointer-events-none", className)}
+      style={{ width: size, height: size }}
+    >
+      <div
+        className="grid grid-cols-3 w-full h-full gap-0"
+      >
+        {cubes.map((_, i) => {
+          const row = Math.floor(i / gridSize);
+          const col = i % gridSize;
+          const delay = (row + col) * 0.1;
+
+          return (
+            <motion.div
+              key={i}
+              className={cn(
+                "w-full h-full",
+                (row + col) % 2 === 0 ? "bg-brand-blue" : "bg-brand-red"
+              )}
+              animate={{
+                scale: [1, 0, 1],
+              }}
+              transition={{
+                duration: 1.2,
+                repeat: Infinity,
+                delay: delay,
+                ease: "easeInOut",
+              }}
+            />
+          );
+        })}
+      </div>
+    </div>
   );
-};
+}

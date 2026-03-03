@@ -245,8 +245,8 @@ export interface JitterConfig {
  */
 export interface SignatureRootProps {
   children?:
-    | React.ReactNode
-    | ((controller: SignatureController) => React.ReactNode);
+  | React.ReactNode
+  | ((controller: SignatureController) => React.ReactNode);
   duration?: number; // Animation duration in milliseconds
   speed?: number; // Playback speed multiplier
   easing?: "linear" | "easeInOutQuad" | "easeOutElastic" | EasingFn;
@@ -2044,7 +2044,7 @@ export const SignaturePath = forwardRef<SVGPathElement, SignaturePathProps>(
             .then((t) => {
               if (isMounted) handleSrc(t);
             })
-            .catch(() => {});
+            .catch(() => { });
         }
       }
 
@@ -2067,8 +2067,8 @@ export const SignaturePath = forwardRef<SVGPathElement, SignaturePathProps>(
           easing === "inherit" || easing === undefined
             ? ctx.config.easing
             : typeof easing === "function"
-            ? easing
-            : normalizeEasing(easing),
+              ? easing
+              : normalizeEasing(easing),
 
         onDrawStart,
         onDrawFrame,
@@ -2273,10 +2273,26 @@ export const SignatureControls = {
             ref={ref}
             onClick={controller.toggle}
             aria-pressed={controller.isPlaying}
-            className={cn("", className)}
+            variant="outline"
+            size="sm"
+            className={cn(
+              "w-12 h-12 rounded-full flex items-center justify-center p-0 border-slate-200 hover:border-brand-blue/30 hover:text-brand-blue transition-all active:scale-95 group bg-white",
+              className
+            )}
             {...rest}
           >
-            {asChild ? children : controller.isPlaying ? "Pause" : "Play"}
+            {asChild ? (
+              children
+            ) : controller.isPlaying ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-slate-600 group-hover:text-brand-blue transition-colors">
+                <rect x="6" y="4" width="4" height="16" rx="1.5" />
+                <rect x="14" y="4" width="4" height="16" rx="1.5" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="translate-x-0.5 text-slate-600 group-hover:text-brand-blue transition-colors">
+                <path d="M5 3.5L19 12L5 20.5V3.5Z" strokeLinejoin="round" />
+              </svg>
+            )}
           </Button>
         );
       }
@@ -2309,10 +2325,15 @@ export const SignatureControls = {
       if (render) return render({ speed, setSpeed });
 
       return (
-        <div ref={ref} className={cn("flex flex-col gap-1", className)}>
-          <label className="text-sm font-medium">
-            Speed: {speed.toFixed(2)}x
-          </label>
+        <div ref={ref} className={cn("flex flex-col gap-2.5", className)}>
+          <div className="flex justify-between items-end px-0.5">
+            <span className="text-[10px] uppercase font-black tracking-[0.1em] text-slate-400">
+              Playback Speed
+            </span>
+            <span className="text-[11px] font-sans font-bold text-brand-blue bg-brand-blue/5 px-2 py-0.5 rounded-full border border-brand-blue/10">
+              {speed.toFixed(2)}x
+            </span>
+          </div>
           <input
             type="range"
             min="0.25"
@@ -2323,12 +2344,12 @@ export const SignatureControls = {
               const value = Number(e.target.value || 1);
               setSpeed(value);
             }}
-            className="w-full bg-primary rounded-3xl"
+            className="w-full cursor-pointer h-1.5 rounded-full appearance-none transition-colors"
             style={{
               background: `linear-gradient(
                 to right,
-                var(--accent-primary) ${((speed - 0.25) / (2 - 0.25)) * 100}%,
-                #d1d5dc 0
+                var(--brand-blue) ${((speed - 0.25) / (1.75)) * 100}%,
+                #e2e8f0 0
               )`,
             }}
           />
@@ -2403,13 +2424,10 @@ export const SignatureControls = {
             }
 
             // Update thumb position
-            if (_thumbRef.current && trackRef.current) {
-              const track = trackRef.current;
+            if (_thumbRef.current) {
               const thumb = _thumbRef.current;
-              const barWidth = track.offsetWidth;
-              const thumbWidth = thumb.offsetWidth;
-              const x = clamped * barWidth - thumbWidth / 2;
-              thumb.style.transform = `translate3d(${x}px, -50%, 0)`;
+              thumb.style.left = `${clamped * 100}%`;
+              thumb.style.transform = `translate3d(-50%, -50%, 0)`;
             }
 
             // Update time display
@@ -2644,7 +2662,7 @@ export const SignatureControls = {
                 tabIndex={0}
                 onKeyDown={handleKeyDown}
                 className={cn(
-                  "relative w-full h-1.5 bg-gray-300 rounded-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                  "relative w-full h-1.5 bg-slate-200 rounded-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue focus-visible:ring-offset-2 transition-colors hover:bg-slate-300/80",
                   className
                 )}
                 style={{
@@ -2687,16 +2705,18 @@ export const SignatureControls = {
           }, ctx.state === "playing");
 
           return (
-            <div
-              ref={composedRefs}
-              aria-hidden="true"
-              className={cn(
-                "absolute inset-0 bg-primary rounded-full origin-left will-change-transform pointer-events-none",
-                className
-              )}
-              style={style}
-              {...rest}
-            />
+            <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
+              <div
+                ref={composedRefs}
+                aria-hidden="true"
+                className={cn(
+                  "absolute inset-0 bg-brand-blue origin-left will-change-transform",
+                  className
+                )}
+                style={style}
+                {...rest}
+              />
+            </div>
           );
         }
       )
@@ -2724,16 +2744,8 @@ export const SignatureControls = {
             if (!thumb) return;
             const progress = ctx.progress.current;
 
-            const track = _trackRef.current;
-            if (track) {
-              const barWidth = track.offsetWidth;
-              const thumbWidth = thumb.offsetWidth;
-              const x = progress * barWidth - thumbWidth / 2;
-              thumb.style.transform = `translate3d(${x}px, -50%, 0)`;
-            } else {
-              thumb.style.left = `${progress * 100}%`;
-              thumb.style.transform = `translate3d(-50%, -50%, 0)`;
-            }
+            thumb.style.left = `${progress * 100}%`;
+            thumb.style.transform = `translate3d(-50%, -50%, 0)`;
           }, ctx.state === "playing");
 
           return (
@@ -2743,12 +2755,14 @@ export const SignatureControls = {
                 role="presentation"
                 aria-hidden="true"
                 className={cn(
-                  "absolute top-1/2 left-0 w-3 h-3 rounded-full bg-primary shadow-lg pointer-events-none will-change-transform",
+                  "absolute top-1/2 left-0 w-4 h-4 rounded-full bg-white border border-slate-200 pointer-events-none will-change-transform flex items-center justify-center shadow-sm",
                   className
                 )}
                 style={style}
                 {...rest}
-              />
+              >
+                <div className="w-1.5 h-1.5 rounded-full bg-brand-blue" />
+              </div>
             </HitArea>
           );
         }
@@ -2814,7 +2828,7 @@ export const SignatureControls = {
         return (
           <span
             className={cn(
-              "flex items-center gap-1.5 text-sm font-medium",
+              "flex items-center gap-1.5 text-[11px] font-sans font-bold",
               className
             )}
             role="timer"
@@ -2824,13 +2838,14 @@ export const SignatureControls = {
               ref={composedRefs}
               id={ctx.currentTimeId}
               aria-label="Current time"
+              className="text-brand-blue"
             >
               0:00
             </span>
-            <span className="opacity-50" aria-hidden="true">
+            <span className="opacity-30" aria-hidden="true">
               /
             </span>
-            <span id={ctx.durationId} aria-label="Duration">
+            <span id={ctx.durationId} aria-label="Duration" className="text-slate-400">
               {durationString}
             </span>
           </span>
@@ -2860,8 +2875,8 @@ export const SignatureControls = {
         {
           format?: "svg" | "png" | "gif";
         } & React.ComponentProps<typeof Button> & {
-            downloadOptions?: ExportSvgOptions;
-          }
+          downloadOptions?: ExportSvgOptions;
+        }
       >((props, forwardedRef) => {
         const {
           className,

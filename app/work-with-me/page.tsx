@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { useClientOnly } from "@/hooks/use-client-only";
 import Link from "next/link";
 import { EMAIL } from "@/constants/details";
-import { ServerLoader } from "@/components/server-loader";
 import { LoaderIcon } from "@/icons/loader";
 
 export default function WorkWithMePage() {

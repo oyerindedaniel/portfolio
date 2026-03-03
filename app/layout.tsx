@@ -10,6 +10,7 @@ const baseUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://danieloyerinde.com";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: {
     default: "Oyerinde Daniel",
     template: "%s | Oyerinde Daniel",
@@ -26,7 +27,6 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Oyerinde Daniel" }],
   creator: "Oyerinde Daniel",
-  metadataBase: new URL(baseUrl),
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -78,7 +78,7 @@ export default function RootLayout(props: React.PropsWithChildren) {
           geistSans.variable,
           geistMono.variable,
           shadowsIntoLight.variable,
-          "antialiased px-6 min-h-svh h-full"
+          "antialiased px-6 min-h-svh"
         )}
       >
         <HandwritingProvider>{props.children}</HandwritingProvider>
