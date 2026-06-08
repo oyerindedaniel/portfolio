@@ -56,11 +56,11 @@ export default function Home() {
           </p>
           <p>
             <a
-              href="https://clip-editor-six.vercel.app"
+              href="https://nativecontextindex.com/"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Clip Editor (wip)
+              Native Context Index
             </a>
           </p>
 
@@ -168,9 +168,9 @@ export default function Home() {
           />
           <HandwritingLine
             as="a"
-            href="https://clip-editor-six.vercel.app"
+            href="https://nativecontextindex.com/"
             target="_blank"
-            text="Clip Editor (wip)"
+            text="Native Context Index"
             className="text-brand-blue hover:text-brand-red transition-colors duration-200"
           />
 
