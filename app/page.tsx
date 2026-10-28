@@ -63,6 +63,15 @@ export default function Home() {
               Native Context Index
             </a>
           </p>
+          <p>
+            <a
+              href="https://www.polyform.ink/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Polyform Ink
+            </a>
+          </p>
 
           <h2>Contact</h2>
           <p>
@@ -171,6 +180,13 @@ export default function Home() {
             href="https://nativecontextindex.com/"
             target="_blank"
             text="Native Context Index"
+            className="text-brand-blue hover:text-brand-red transition-colors duration-200"
+          />
+          <HandwritingLine
+            as="a"
+            href="https://www.polyform.ink/"
+            target="_blank"
+            text="Polyform Ink"
             className="text-brand-blue hover:text-brand-red transition-colors duration-200"
           />
 
